@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.ts",
     "coverage": "nyc npm test",
-    "coverage-ci": "nyc --reporter=lcov npm test",
+    "test-ci": "nyc --reporter=lcov npm test",
     "compile": "rimraf ./build && tsc",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
