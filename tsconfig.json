@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "lib": ["es2018"],
+        "outDir": "build",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "target": "es2018",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "declaration": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "stripInternal": true,
+        "pretty": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "downlevelIteration": true
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
+}
