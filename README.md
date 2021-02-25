@@ -1,6 +1,6 @@
 # FM OData client
 
-![CI Workflow](https://github.com/github/soliantconsulting/fm-odata-client/workflows/ci.yml/badge.svg)
+[![Node.js CI](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml/badge.svg)](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/soliantconsulting/fm-odata-client/badge.svg?branch=main)](https://coveralls.io/github/soliantconsulting/fm-odata-client?branch=main)
 
 ## Filters
