@@ -19,7 +19,9 @@ describe('Database', () => {
         it('should call executeBatch on batched connection', async () => {
             const batchedConnectionStub = sinon.createStubInstance(Connection);
             connectionStub.batchConnection.returns(batchedConnectionStub as unknown as Connection);
-            await database.batch(() => {});
+            await database.batch(() => {
+                // Returns void
+            });
             sinon.assert.calledOnce(batchedConnectionStub.executeBatch);
         });
 
@@ -32,7 +34,9 @@ describe('Database', () => {
 
         it('should return empty array when executor returns void', async () => {
             connectionStub.batchConnection.returns(connectionStub as unknown as Connection);
-            await expect(database.batch(() => {})).to.eventually.be.eql([]);
+            await expect(database.batch(() => {
+                // Returns void
+            })).to.eventually.be.eql([]);
         });
 
         it('should return resolved array promised from executor', async () => {
