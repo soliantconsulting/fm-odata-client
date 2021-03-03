@@ -17,7 +17,7 @@ export type OrderBy = {
 
 export type QueryParams = {
     filter ?: string;
-    orderBy ?: string | OrderBy | OrderBy[];
+    orderBy ?: string | OrderBy | Array<string | OrderBy>;
     top ?: number;
     skip ?: number;
     count ?: boolean;
@@ -33,6 +33,11 @@ export type PrimaryKey = string | number | Record<string, string | number>;
 
 export const allowedFileTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/tiff', 'application/pdf'];
 
+export type QueryResultWithCount = {
+    count : number;
+    rows : Row[];
+};
+
 class Table<Batched extends boolean = false>
 {
     public constructor(
@@ -46,10 +51,13 @@ class Table<Batched extends boolean = false>
     public async create(data : RowData) : Promise<Batched extends false ? Row : void>;
     public async create(data : RowData) : Promise<Row | void>
     {
-        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)('', async () => ({
-            method: 'POST',
-            body: JSON.stringify(await Table.compileRowData(data)),
-        }));
+        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
+            '',
+            (async () : Promise<FetchParams> => ({
+                method: 'POST',
+                body: JSON.stringify(await Table.compileRowData(data)),
+            }))()
+        );
     }
 
     public async update(id : PrimaryKey, data : RowData) : Promise<Batched extends false ? Row : void>;
@@ -57,21 +65,24 @@ class Table<Batched extends boolean = false>
     {
         return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
             `(${Table.compilePrimaryKey(id)})`,
-            async () => ({
+            (async () : Promise<FetchParams> => ({
                 method: 'PATCH',
                 body: JSON.stringify(await Table.compileRowData(data)),
-            })
+            }))()
         );
     }
 
     public async updateMany(filter : string, data : RowData) : Promise<Batched extends false ? Row[] : void>;
     public async updateMany(filter : string, data : RowData) : Promise<Row[] | void>
     {
-        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)('', async () => ({
-            method: 'PATCH',
-            search: new URLSearchParams({$filter: filter}),
-            body: JSON.stringify(await Table.compileRowData(data)),
-        }));
+        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
+            '',
+            (async () : Promise<FetchParams> => ({
+                method: 'PATCH',
+                search: new URLSearchParams({$filter: filter}),
+                body: JSON.stringify(await Table.compileRowData(data)),
+            }))()
+        );
     }
 
     public async delete(id : PrimaryKey) : Promise<void>
@@ -89,19 +100,14 @@ class Table<Batched extends boolean = false>
 
     public async uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Promise<void>
     {
-        return this.fetchNone(`(${Table.compilePrimaryKey(id)})/${fieldName}`, async () => {
-            const fileType = await FileType.fromBuffer(data);
-
-            if (!fileType || !allowedFileTypes.includes(fileType.mime)) {
-                throw new Error('Invalid data, must be one of the following types: ' + allowedFileTypes.join(', '));
-            }
-
-            return {
+        return this.fetchNone(
+            `(${Table.compilePrimaryKey(id)})/${fieldName}`,
+            (async () : Promise<FetchParams> => ({
                 method: 'PATCH',
                 body: data,
-                contentType: fileType.mime,
-            };
-        });
+                contentType: await Table.getMimeType(data),
+            }))()
+        );
     }
 
     public async count(filter ?: string) : Promise<number>
@@ -142,7 +148,9 @@ class Table<Batched extends boolean = false>
         return result[0];
     }
 
-    public async query(params ?: QueryParams) : Promise<Row[]>
+    public async query(params ?: QueryParams & {count : true}) : Promise<QueryResultWithCount>;
+    public async query(params ?: QueryParams & {count ?: false}) : Promise<Row[]>;
+    public async query(params ?: QueryParams) : Promise<Row[] | QueryResultWithCount>
     {
         let searchParams : URLSearchParams | undefined = undefined;
 
@@ -170,25 +178,33 @@ class Table<Batched extends boolean = false>
             }
 
             if (params.select) {
-                searchParams.set('$select', params.select.join(', '));
+                searchParams.set('$select', params.select.join(','));
             }
         }
 
-        const response = await this.fetchJson<ServiceDocument<Row[]>>('', {search: searchParams});
+        const response = await this.fetchJson<ServiceDocument<Row[]> & {'@odata.count' : number}>(
+            '',
+            {search: searchParams}
+        );
+
+        if (params?.count) {
+            return {count: response['@odata.count'], rows: response.value};
+        }
+
         return response.value;
     }
 
-    private async fetchNone(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<void>
+    private async fetchNone(path : string, params : FetchParams | Promise<FetchParams>) : Promise<void>
     {
         return this.database.fetchNone(`/${this.name}${path}`, params);
     }
 
-    private async fetchJson<T>(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<T>
+    private async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T>
     {
         return this.database.fetchJson<T>(`/${this.name}${path}`, params);
     }
 
-    private async fetchBlob(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<Blob>
+    private async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob>
     {
         return this.database.fetchBlob(`/${this.name}${path}`, params);
     }
@@ -204,12 +220,7 @@ class Table<Batched extends boolean = false>
             }
 
             if (value instanceof Buffer) {
-                const fileType = await FileType.fromBuffer(value);
-
-                if (!fileType || !allowedFileTypes.includes(fileType.mime)) {
-                    throw new Error('Invalid data, must be one of the following types: ' + allowedFileTypes.join(', '));
-                }
-
+                await Table.getMimeType(value);
                 value = value.toString('base64');
             }
 
@@ -219,14 +230,25 @@ class Table<Batched extends boolean = false>
         return result;
     }
 
-    private static compileOrderBy(orderBy : string | OrderBy | OrderBy[]) : string
+    private static async getMimeType(data : Buffer) : Promise<string>
+    {
+        const fileType = await FileType.fromBuffer(data);
+
+        if (!fileType || !allowedFileTypes.includes(fileType.mime)) {
+            throw new Error('Invalid data, must be one of the following types: ' + allowedFileTypes.join(', '));
+        }
+
+        return fileType.mime;
+    }
+
+    private static compileOrderBy(orderBy : string | OrderBy | Array<string | OrderBy>) : string
     {
         if (typeof orderBy === 'string') {
             return orderBy;
         }
 
         if (Array.isArray(orderBy)) {
-            return orderBy.map(Table.compileOrderBy).join(', ');
+            return orderBy.map(Table.compileOrderBy).join(',');
         }
 
         if (!orderBy.direction) {

@@ -161,7 +161,7 @@ class Database<Batched extends boolean = false>
     /**
      * @internal
      */
-    public async fetchNone(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<void>
+    public async fetchNone(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<void>
     {
         return this.connection.fetchNone(`/${this.name}${path}`, params);
     }
@@ -169,7 +169,7 @@ class Database<Batched extends boolean = false>
     /**
      * @internal
      */
-    public async fetchJson<T>(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<T>
+    public async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T>
     {
         return this.connection.fetchJson<T>(`/${this.name}${path}`, params);
     }
@@ -177,7 +177,7 @@ class Database<Batched extends boolean = false>
     /**
      * @internal
      */
-    public async fetchBlob(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<Blob>
+    public async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob>
     {
         return this.connection.fetchBlob(`/${this.name}${path}`, params);
     }

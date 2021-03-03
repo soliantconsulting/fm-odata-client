@@ -54,7 +54,7 @@ export type Blob = {
 
 type BatchOperation = {
     path : string;
-    params : FetchParams | (() => Promise<FetchParams>);
+    params : FetchParams | Promise<FetchParams>;
     resolve : (response : Response) => void;
     reject : (error : Error) => void;
 };
@@ -149,7 +149,7 @@ class Connection
     /**
      * @internal
      */
-    public async fetchNone(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<void>
+    public async fetchNone(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<void>
     {
         await this.fetch(path, params);
     }
@@ -157,20 +157,17 @@ class Connection
     /**
      * @internal
      */
-    public async fetchJson<T>(path : string, params ?: FetchParams | (() => Promise<FetchParams>)) : Promise<T>;
+    public async fetchJson<T>(path : string, params ?: FetchParams | Promise<FetchParams>) : Promise<T>;
 
     /**
      * @internal
      */
-    public async fetchJson<T>(path : string, params ?: FetchParams | (() => Promise<FetchParams>)) : Promise<T | null>;
+    public async fetchJson<T>(path : string, params ?: FetchParams | Promise<FetchParams>) : Promise<T | null>;
 
     /**
      * @internal
      */
-    public async fetchJson<T>(
-        path : string,
-        params : FetchParams | (() => Promise<FetchParams>) = {},
-    ) : Promise<T | null>
+    public async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T | null>
     {
         const response = await this.fetch(path, params);
 
@@ -184,7 +181,7 @@ class Connection
     /**
      * @internal
      */
-    public async fetchBlob(path : string, params : FetchParams | (() => Promise<FetchParams>) = {}) : Promise<Blob>
+    public async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob>
     {
         const response = await this.fetch(path, params);
         const contentType = response.headers.get('Content-Type');
@@ -193,7 +190,7 @@ class Connection
         return {buffer, type: contentType ?? 'application/octet-stream'};
     }
 
-    private async fetch(path : string, params : FetchParams | (() => Promise<FetchParams>)) : Promise<Response>
+    private async fetch(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Response>
     {
         let response : Response;
 
@@ -225,12 +222,9 @@ class Connection
         return response;
     }
 
-    private async createRequest(path : string, params : FetchParams | (() => Promise<FetchParams>)) : Promise<Request>
+    private async createRequest(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Request>
     {
-        if (typeof params === 'function') {
-            params = await params();
-        }
-
+        params = await params;
         let url = `https://${this.hostname}/fmi/odata/v4${path}`;
 
         if (params.search) {

@@ -102,6 +102,11 @@ describe('Connection', () => {
             return connection.fetchNone('', {method: 'POST', body: 'test'});
         });
 
+        it('should include binary body in request', () => {
+            nock('https://localhost').post('/fmi/odata/v4', Buffer.from('\x01\x02')).reply(204);
+            return connection.fetchNone('', {method: 'POST', body: Buffer.from('\x01\x02')});
+        });
+
         it('should throw generic error on invalid response', async () => {
             nock('https://localhost').get('/fmi/odata/v4').reply(400);
             await expect(connection.fetchNone('')).to.eventually.be.rejectedWith('An unknown error occurred');
