@@ -1,4 +1,4 @@
-# FM OData client
+# FileMaker OData client
 
 [![Node.js CI](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml/badge.svg)](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/soliantconsulting/fm-odata-client/badge.svg?branch=main)](https://coveralls.io/github/soliantconsulting/fm-odata-client?branch=main)

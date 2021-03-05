@@ -10,6 +10,11 @@ use(chaiAsPromised);
 describe('Connection', () => {
     const connection = new Connection('localhost', {type: 'claris-id-token', token: 'foobar'});
 
+    afterEach(() => {
+        nock.cleanAll();
+        nock.enableNetConnect();
+    })
+
     describe('listDatabases', () => {
         it('should return a list of databases', async () => {
             nock('https://localhost').get('/fmi/odata/v4').reply(200, JSON.stringify({
@@ -22,6 +27,13 @@ describe('Connection', () => {
                 [{name: 'Foo', kind: 'EntityContainer', url: 'https://localhost/fmi/odata/v4/Foo'}]
             );
         });
+
+        it('should throw an error in batched context', async () => {
+            const batchedConnection = connection.batchConnection('foo');
+            await expect(batchedConnection.listDatabases()).to.eventually.be.rejectedWith(
+                'Databases cannot be listed from a batched connection'
+            );
+        });
     });
 
     describe('database', () => {
@@ -29,6 +41,92 @@ describe('Connection', () => {
             const database = connection.database('foo');
             expect(database['connection']).to.be.equal(connection);
             expect(database['name']).to.be.equal('foo');
+        });
+
+        it('should throw an error in batched context', () => {
+            const batchedConnection = connection.batchConnection('foo');
+            expect(batchedConnection.database.bind(batchedConnection, 'foo')).to.throw(
+                'Database objects cannot be created from a batched connection'
+            );
+        });
+    });
+
+    describe('batchConnection', () => {
+        it('should return a batched connection', () => {
+            const batchedConnection = connection.batchConnection('foo');
+            expect(batchedConnection['hostname']).to.equal('localhost');
+            expect(batchedConnection['authentication']).to.eql({type: 'claris-id-token', token: 'foobar'});
+            expect(batchedConnection['batch']).to.eql({
+                databaseName: 'foo',
+                operations: [],
+            });
+        });
+    });
+
+    describe('executeBatch', () => {
+        it('should throw an error outside batched context', async () => {
+            await expect(connection.executeBatch()).to.eventually.be.rejectedWith('A batch has not been started');
+        });
+
+        it('should not run without operations', async () => {
+            const scope = nock('https://localhost').post('/fmi/odata/v4/foo/$batch').reply(204);
+
+            const batchedConnection = connection.batchConnection('foo');
+            await batchedConnection.executeBatch();
+
+            expect(scope.isDone()).to.be.false;
+        });
+
+        it('should throw error on non successful response', async () => {
+            nock('https://localhost').post('/fmi/odata/v4/foo/$batch').reply(400);
+
+            const batchedConnection = connection.batchConnection('foo');
+            batchedConnection.fetchNone('/foo');
+
+            await expect(batchedConnection.executeBatch()).to.eventually.be.rejectedWith('Batch request failed');
+        });
+
+        it('should reject with insufficient responses', async () => {
+            nock('https://localhost').post('/fmi/odata/v4/foo/$batch').reply(200, [
+                '--foo',
+                'Content-Type: application/http',
+                '',
+                'HTTP/1.1 200 OK',
+                'Content-Type: text/plain',
+                '',
+                'foo',
+                '--foo--'
+            ].join('\r\n'), {
+                'Content-Type': 'multipart/mixed; boundary=foo'
+            });
+
+            const batchedConnection = connection.batchConnection('foo');
+            batchedConnection.fetchNone('/foo');
+            const secondResponse = batchedConnection.fetchNone('/foo');
+            await batchedConnection.executeBatch();
+
+            await expect(secondResponse).to.eventually.be.rejectedWith('No matching response in batch response');
+        });
+
+        it('should resolve pending operations', async () => {
+            nock('https://localhost').post('/fmi/odata/v4/foo/$batch').reply(200, [
+                '--foo',
+                'Content-Type: application/http',
+                '',
+                'HTTP/1.1 200 OK',
+                'Content-Type: application/json',
+                '',
+                '{"foo": "bar"}',
+                '--foo--'
+            ].join('\r\n'), {
+                'Content-Type': 'multipart/mixed; boundary=foo'
+            });
+
+            const batchedConnection = connection.batchConnection('foo');
+            const response = batchedConnection.fetchJson('/foo');
+            await batchedConnection.executeBatch();
+
+            await expect(response).to.eventually.become({foo: 'bar'});
         });
     });
 
@@ -139,6 +237,13 @@ describe('Connection', () => {
                 .reply(204);
             return connection.fetchNone('');
         });
+
+        it('should queue operation in batched context', () => {
+            const batchedConnection = connection.batchConnection('foo');
+            batchedConnection.fetchNone('/foo');
+
+            expect(batchedConnection['batch']!.operations).to.be.lengthOf(1);
+        });
     });
 
     describe('fetchBlob', () => {
@@ -172,6 +277,11 @@ describe('Connection', () => {
         it('should forward fetch params', async () => {
             nock('https://localhost').post('/fmi/odata/v4').reply(200, '{}');
             return await connection.fetchJson('', {method: 'POST'});
+        });
+
+        it('should throw error on 204 response', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(204);
+            await expect(connection.fetchJson('')).to.eventually.rejectedWith('Response included no content');
         });
     });
 });

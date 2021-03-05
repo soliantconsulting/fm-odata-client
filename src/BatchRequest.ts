@@ -110,6 +110,10 @@ class BatchRequest
 
     public static splitPart(part : string) : [Headers, string]
     {
+        if (part.startsWith('\r\n')) {
+            return [new Headers(), part.replace(/^\r\n/, '')];
+        }
+
         const breakIndex = part.indexOf('\r\n\r\n');
         const rawHeaders = part.slice(0, breakIndex);
         const rawBody = part.slice(breakIndex + 4);

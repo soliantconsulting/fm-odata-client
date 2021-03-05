@@ -129,7 +129,6 @@ class Connection
         const response = await fetch(batchRequest.toRequest());
 
         if (!response.ok) {
-            console.log(await response.text());
             throw new Error('Batch request failed');
         }
 
