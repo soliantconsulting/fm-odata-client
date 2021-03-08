@@ -4,18 +4,10 @@ import {URLSearchParams} from 'url';
 import BatchRequest from './BatchRequest';
 import Database from './Database';
 
-export type UsernamePasswordAuthentication = {
-    type : 'username-password';
-    username : string;
-    password : string;
-};
-
-export type ClarisIdTokenAuthentication = {
-    type : 'claris-id-token';
-    token : string;
-};
-
-export type Authentication = UsernamePasswordAuthentication | ClarisIdTokenAuthentication;
+export interface Authentication
+{
+    getAuthorizationHeader() : Promise<string>;
+}
 
 export type FetchParams = {
     search ?: URLSearchParams;
@@ -120,7 +112,7 @@ class Connection
 
         const batchRequest = new BatchRequest(
             `https://${this.hostname}/fmi/odata/v4/${this.batch.databaseName}`,
-            this.getAuthorizationHeader(),
+            await this.authentication.getAuthorizationHeader(),
             await Promise.all(this.batch.operations.map(
                 operation => this.createRequest(operation.path, operation.params)
             )),
@@ -231,7 +223,7 @@ class Connection
         }
 
         const headers = new Headers({
-            Authorization: this.getAuthorizationHeader(),
+            Authorization: await this.authentication.getAuthorizationHeader(),
             Accept: 'application/json',
         });
 
@@ -251,16 +243,6 @@ class Connection
             body: params.body,
             headers,
         });
-    }
-
-    private getAuthorizationHeader() : string
-    {
-        if (this.authentication.type === 'claris-id-token') {
-            return `FMID ${this.authentication.token}`;
-        }
-
-        const {username, password} = this.authentication;
-        return `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
     }
 }
 

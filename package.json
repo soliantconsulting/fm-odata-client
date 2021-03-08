@@ -40,6 +40,14 @@
     "node-fetch": "^2.6.1",
     "tslib": "^2.1.0"
   },
+  "peerDependencies": {
+    "amazon-cognito-identity-js": "^4.5.12"
+  },
+  "peerDependenciesMeta": {
+    "amazon-cognito-identity-js": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/chai": "^4.2.15",
     "@types/chai-as-promised": "^7.1.3",
@@ -50,6 +58,7 @@
     "@types/sinon": "^9.0.10",
     "@typescript-eslint/eslint-plugin": "^4.15.1",
     "@typescript-eslint/parser": "^4.15.1",
+    "amazon-cognito-identity-js": "^4.5.12",
     "chai": "^4.3.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^7.20.0",

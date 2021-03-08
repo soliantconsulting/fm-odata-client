@@ -22,6 +22,7 @@ describe('BatchRequest', () => {
             const request = new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo'),
             ]).toRequest();
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             const [, boundary] = request.headers.get('Content-Type')!
                 .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
 
@@ -86,6 +87,7 @@ describe('BatchRequest', () => {
             ]).toRequest();
 
             const body = await request.text();
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             const [, boundary] = request.headers.get('Content-Type')!
                 .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
 
@@ -95,6 +97,7 @@ describe('BatchRequest', () => {
             const changeset = batchParts[0].trim();
 
             expect(changeset).to.match(changeSetBoundaryRegexp);
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             const [, changesetBoundary] = changeset.match(changeSetBoundaryRegexp)!;
             const changesetParts = changeset.split(`--${changesetBoundary}`).slice(1, -1);
 
@@ -119,6 +122,7 @@ describe('BatchRequest', () => {
             ]).toRequest();
 
             const body = await request.text();
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             const [, boundary] = request.headers.get('Content-Type')!
                 .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
 

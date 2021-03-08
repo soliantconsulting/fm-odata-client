@@ -3,12 +3,21 @@ import chaiAsPromised from 'chai-as-promised'
 import 'mocha';
 import nock from 'nock';
 import {URLSearchParams} from 'url';
-import {Connection} from '../src';
+import {Authentication, Connection} from '../src';
 
 use(chaiAsPromised);
 
+class FakeAuth implements Authentication
+{
+    public getAuthorizationHeader() : Promise<string>
+    {
+        return Promise.resolve('foobar');
+    }
+}
+
 describe('Connection', () => {
-    const connection = new Connection('localhost', {type: 'claris-id-token', token: 'foobar'});
+    const auth = new FakeAuth();
+    const connection = new Connection('localhost', auth);
 
     afterEach(() => {
         nock.cleanAll();
@@ -55,7 +64,7 @@ describe('Connection', () => {
         it('should return a batched connection', () => {
             const batchedConnection = connection.batchConnection('foo');
             expect(batchedConnection['hostname']).to.equal('localhost');
-            expect(batchedConnection['authentication']).to.eql({type: 'claris-id-token', token: 'foobar'});
+            expect(batchedConnection['authentication']).to.equal(auth);
             expect(batchedConnection['batch']).to.eql({
                 databaseName: 'foo',
                 operations: [],
@@ -220,20 +229,10 @@ describe('Connection', () => {
             await expect(connection.fetchNone('')).to.eventually.be.rejectedWith('foo');
         });
 
-        it('should send Claris ID token when supplied', () => {
-            const connection = new Connection('localhost', {type: 'claris-id-token', token: 'foobar'});
-            nock('https://localhost').get('/fmi/odata/v4').matchHeader('Authorization', 'FMID foobar').reply(204);
-            return connection.fetchNone('');
-        });
-
-        it('should send username and password when supplied', () => {
-            const connection = new Connection(
-                'localhost',
-                {type: 'username-password', username: 'foo', password: 'bar'}
-            );
+        it('should send authorization header from supplied Authentication', () => {
             nock('https://localhost')
                 .get('/fmi/odata/v4')
-                .matchHeader('Authorization', 'Basic Zm9vOmJhcg==')
+                .matchHeader('Authorization', 'foobar')
                 .reply(204);
             return connection.fetchNone('');
         });
@@ -242,6 +241,7 @@ describe('Connection', () => {
             const batchedConnection = connection.batchConnection('foo');
             batchedConnection.fetchNone('/foo');
 
+            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             expect(batchedConnection['batch']!.operations).to.be.lengthOf(1);
         });
     });
