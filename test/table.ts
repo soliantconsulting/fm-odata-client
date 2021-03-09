@@ -395,5 +395,35 @@ describe('Table', () => {
                 {search: new URLSearchParams({$select: 'foo,bar'})}
             );
         });
+
+        it('should query simple related table when provided', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            await table.query({relatedTable: 'ba+r'});
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/foo/ba%2Br',
+                {search: new URLSearchParams()}
+            );
+        });
+
+        it('should query link of related tables when provided', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            await table.query({relatedTable: ['ba+r', 'baz']});
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/foo/ba%2Br/baz',
+                {search: new URLSearchParams()}
+            );
+        });
+
+        it('should query related table of individual record when provided', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            await table.query({relatedTable: {primaryKey: 1, table: 'bar'}});
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/foo(1)/bar',
+                {search: new URLSearchParams()}
+            );
+        });
     });
 });

@@ -22,6 +22,10 @@ export type QueryParams = {
     skip ?: number;
     count ?: boolean;
     select ?: string[];
+    relatedTable ?: string | string[] | {
+        primaryKey : PrimaryKey;
+        table : string | string[];
+    };
 };
 
 export type Row = {
@@ -152,11 +156,10 @@ class Table<Batched extends boolean = false>
     public async query(params ?: QueryParams & {count ?: false}) : Promise<Row[]>;
     public async query(params ?: QueryParams) : Promise<Row[] | QueryResultWithCount>
     {
-        let searchParams : URLSearchParams | undefined = undefined;
+        const searchParams : URLSearchParams = new URLSearchParams();
+        let path = '';
 
         if (params) {
-            searchParams = new URLSearchParams();
-
             if (params.filter) {
                 searchParams.set('$filter', params.filter);
             }
@@ -180,10 +183,14 @@ class Table<Batched extends boolean = false>
             if (params.select) {
                 searchParams.set('$select', params.select.join(','));
             }
+
+            if (params.relatedTable) {
+                path = Table.compileRelatedTablePath(params.relatedTable);
+            }
         }
 
         const response = await this.fetchJson<ServiceDocument<Row[]> & {'@odata.count' : number}>(
-            '',
+            path,
             {search: searchParams}
         );
 
@@ -271,6 +278,21 @@ class Table<Batched extends boolean = false>
         }
 
         return id.toString();
+    }
+
+    private static compileRelatedTablePath(relatedTable : Exclude<QueryParams['relatedTable'], undefined>) : string
+    {
+        if (Array.isArray(relatedTable)) {
+            return `/${relatedTable.map(encodeURIComponent).join('/')}`;
+        }
+
+        if (typeof relatedTable === 'string') {
+            return `/${encodeURIComponent(relatedTable)}`;
+        }
+
+        return `(${Table.compilePrimaryKey(
+            relatedTable.primaryKey
+        )})${Table.compileRelatedTablePath(relatedTable.table)}`;
     }
 }
 
