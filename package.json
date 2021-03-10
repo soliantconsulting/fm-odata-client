@@ -2,18 +2,30 @@
   "name": "fm-odata-client",
   "version": "0.1.0",
   "description": "FileMaker OData client developed by Soliant Consulting",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com:soliantconsulting/fm-odata-client.git"
+  },
+  "files": [
+    "lib/**/*"
+  ],
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.ts",
     "coverage": "nyc npm test",
     "test-ci": "nyc --reporter=lcov npm test",
-    "compile": "rimraf ./build && tsc",
+    "build": "rimraf ./build && tsc",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
     "cpd": "jscpd src",
     "postinstall": "is-ci || husky install",
-    "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable"
+    "prepublishOnly": "npm test && npm run lint && pinst --disable",
+    "postpublish": "pinst --enable",
+    "prepare": "npm run build",
+    "preversion": "npm run lint",
+    "version": "npm run lint:fix && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "husky": {
     "hooks": {

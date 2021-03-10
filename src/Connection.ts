@@ -219,7 +219,7 @@ class Connection
         let url = `https://${this.hostname}/fmi/odata/v4${path}`;
 
         if (params.search) {
-            url += `?${params.search.toString().replace(/%24/g, '$').replace(/\+/g, '%20')}`;
+            url += `?${Connection.stringifySearch(params.search)}`;
         }
 
         const headers = new Headers({
@@ -243,6 +243,15 @@ class Connection
             body: params.body,
             headers,
         });
+    }
+
+    private static stringifySearch(search : URLSearchParams) : string
+    {
+        const specialTokens = {'%24': '$', '+': '%20', '%2F': '/', '%3D': '=', '%2C': ','};
+        return search.toString().replace(
+            /(%24|\+|%2F|%3D|%2C)/g,
+            match => specialTokens[match as keyof typeof specialTokens]
+        );
     }
 }
 

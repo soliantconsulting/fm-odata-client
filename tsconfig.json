@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "lib": ["es2018"],
-        "outDir": "build",
+        "outDir": "lib",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "target": "es2018",
@@ -24,7 +24,7 @@
         "src"
     ],
     "exclude": [
-        "build",
+        "lib",
         "node_modules"
     ]
 }

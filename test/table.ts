@@ -426,4 +426,45 @@ describe('Table', () => {
             );
         });
     });
+
+    describe('crossJoin', () => {
+        it('should join single table', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: [{foo: 'bar'}]}));
+            const result = table.crossJoin('bar');
+            await expect(result).to.eventually.eql([{foo: 'bar'}]);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/$crossjoin(foo,bar)',
+                {search: new URLSearchParams()}
+            );
+        });
+
+        it('should join single table', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            await table.crossJoin(['bar', 'baz']);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/$crossjoin(foo,bar,baz)',
+                {search: new URLSearchParams()}
+            );
+        });
+
+        it('should add expand join when provided', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            await table.crossJoin('bar', {select: {foo: ['bar', 'baz']}});
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                '/$crossjoin(foo,bar)',
+                {search: new URLSearchParams({
+                    $expand: 'foo($select=bar,baz)',
+                })}
+            );
+        });
+
+        it('should return count when enabled', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({'@odata.count': 5, value: []}));
+            const result = table.crossJoin('bar', {count: true});
+            await expect(result).to.eventually.eql({count: 5, rows: []});
+        });
+    });
 });

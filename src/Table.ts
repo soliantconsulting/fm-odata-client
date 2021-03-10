@@ -28,19 +28,32 @@ export type QueryParams = {
     };
 };
 
+export type FetchOneParams = Omit<QueryParams, 'top' | 'count'>;
+
+export type CrossJoinParams = Omit<QueryParams, 'relatedTable' | 'select'> & {
+    select ?: Record<string, string[]>;
+};
+
 export type Row = {
     '@odata.id' : string;
     '@odata.editLink' : string;
 } & Record<string, string | number>;
 
-export type PrimaryKey = string | number | Record<string, string | number>;
-
-export const allowedFileTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/tiff', 'application/pdf'];
-
 export type QueryResultWithCount = {
     count : number;
     rows : Row[];
 };
+
+export type CrossJoinRow = Record<string, string | number>;
+
+export type CrossJoinResultWithCount = {
+    count : number;
+    rows : CrossJoinRow[];
+};
+
+export type PrimaryKey = string | number | Record<string, string | number>;
+
+export const allowedFileTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/tiff', 'application/pdf'];
 
 class Table<Batched extends boolean = false>
 {
@@ -141,7 +154,7 @@ class Table<Batched extends boolean = false>
         return this.fetchBlob(`(${Table.compilePrimaryKey(id)})/${fieldName}/$value`);
     }
 
-    public async fetchOne(params ?: Omit<QueryParams, 'top' | 'count'>) : Promise<Row | null>
+    public async fetchOne(params ?: FetchOneParams) : Promise<Row | null>
     {
         const result = await this.query({...params, top: 1});
 
@@ -156,41 +169,50 @@ class Table<Batched extends boolean = false>
     public async query(params ?: QueryParams & {count ?: false}) : Promise<Row[]>;
     public async query(params ?: QueryParams) : Promise<Row[] | QueryResultWithCount>
     {
-        const searchParams : URLSearchParams = new URLSearchParams();
-        let path = '';
-
-        if (params) {
-            if (params.filter) {
-                searchParams.set('$filter', params.filter);
-            }
-
-            if (params.orderBy) {
-                searchParams.set('$orderby', Table.compileOrderBy(params.orderBy));
-            }
-
-            if (params.top) {
-                searchParams.set('$top', params.top.toString());
-            }
-
-            if (params.skip) {
-                searchParams.set('$skip', params.skip.toString());
-            }
-
-            if (params.count) {
-                searchParams.set('$count', 'true');
-            }
-
-            if (params.select) {
-                searchParams.set('$select', params.select.join(','));
-            }
-
-            if (params.relatedTable) {
-                path = Table.compileRelatedTablePath(params.relatedTable);
-            }
-        }
+        const searchParams : URLSearchParams = params ? Table.compileQuerySearch(params) : new URLSearchParams();
+        const path = params?.relatedTable ? Table.compileRelatedTablePath(params.relatedTable) : '';
 
         const response = await this.fetchJson<ServiceDocument<Row[]> & {'@odata.count' : number}>(
             path,
+            {search: searchParams}
+        );
+
+        if (params?.count) {
+            return {count: response['@odata.count'], rows: response.value};
+        }
+
+        return response.value;
+    }
+
+    public async crossJoin(
+        tables : string | string[],
+        params ?: CrossJoinParams & {count : true}
+    ) : Promise<CrossJoinResultWithCount>
+    public async crossJoin(
+        tables : string | string[],
+        params ?: CrossJoinParams & {count ?: false}
+    ) : Promise<CrossJoinRow[]>
+    public async crossJoin(
+        tables : string | string[],
+        params ?: CrossJoinParams
+    ) : Promise<CrossJoinRow[] | CrossJoinResultWithCount>
+    {
+        const searchParams : URLSearchParams = params
+            ? Table.compileQuerySearch({...params, select: undefined})
+            : new URLSearchParams();
+        const tableNames = [this.name, ...Array.isArray(tables) ? tables : [tables]];
+
+        if (params?.select) {
+            searchParams.set(
+                '$expand',
+                Object.entries(params.select)
+                    .map(([table, fields]) => `${table}($select=${fields.join(',')})`)
+                    .join(',')
+            );
+        }
+
+        const response = await this.database.fetchJson<ServiceDocument<CrossJoinRow[]> & {'@odata.count' : number}>(
+            `/$crossjoin(${tableNames.join(',')})`,
             {search: searchParams}
         );
 
@@ -246,6 +268,37 @@ class Table<Batched extends boolean = false>
         }
 
         return fileType.mime;
+    }
+
+    private static compileQuerySearch(params : QueryParams) : URLSearchParams
+    {
+        const searchParams = new URLSearchParams();
+
+        if (params.filter) {
+            searchParams.set('$filter', params.filter);
+        }
+
+        if (params.orderBy) {
+            searchParams.set('$orderby', Table.compileOrderBy(params.orderBy));
+        }
+
+        if (params.top) {
+            searchParams.set('$top', params.top.toString());
+        }
+
+        if (params.skip) {
+            searchParams.set('$skip', params.skip.toString());
+        }
+
+        if (params.count) {
+            searchParams.set('$count', 'true');
+        }
+
+        if (params.select) {
+            searchParams.set('$select', params.select.join(','));
+        }
+
+        return searchParams;
     }
 
     private static compileOrderBy(orderBy : string | OrderBy | Array<string | OrderBy>) : string
