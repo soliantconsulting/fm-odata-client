@@ -1,6 +1,6 @@
 {
   "name": "fm-odata-client",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "FileMaker OData client developed by Soliant Consulting",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
