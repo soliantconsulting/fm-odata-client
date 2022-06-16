@@ -33,9 +33,9 @@ describe('Table', () => {
             });
         });
 
-        it('should call fetchNone when batched', async () => {
-            const batchedTable = new Table(databaseStub as unknown as Database, 'foo', true);
-            await batchedTable.create({});
+        it('should call fetchNone when batched', () => {
+            const batchedTable = new Table(databaseStub as unknown as Database<true>, 'foo', true);
+            batchedTable.create({});
             sinon.assert.calledOnce(databaseStub.fetchNone);
         });
 
@@ -78,9 +78,9 @@ describe('Table', () => {
             });
         });
 
-        it('should call fetchNone when batched', async () => {
-            const batchedTable = new Table(databaseStub as unknown as Database, "/foo('bar')", true);
-            await batchedTable.update('bar', {});
+        it('should call fetchNone when batched', () => {
+            const batchedTable = new Table(databaseStub as unknown as Database<true>, "/foo('bar')", true);
+            batchedTable.update('bar', {});
             sinon.assert.calledOnce(databaseStub.fetchNone);
         });
     });
@@ -97,9 +97,9 @@ describe('Table', () => {
             });
         });
 
-        it('should call fetchNone when batched', async () => {
-            const batchedTable = new Table(databaseStub as unknown as Database, '/foo', true);
-            await batchedTable.updateMany('bar', {});
+        it('should call fetchNone when batched', () => {
+            const batchedTable = new Table(databaseStub as unknown as Database<true>, '/foo', true);
+            batchedTable.updateMany('bar', {});
             sinon.assert.calledOnce(databaseStub.fetchNone);
         });
     });
