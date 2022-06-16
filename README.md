@@ -1,6 +1,7 @@
 # FileMaker OData client
 
-[![Node.js CI](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml/badge.svg)](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/fm-odata-client.svg)](https://badge.fury.io/js/fm-odata-client)
+[![Release](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/release.yml/badge.svg)](https://github.com/soliantconsulting/fm-odata-client/actions/workflows/release.yml)
 [![Coverage Status](https://coveralls.io/repos/github/soliantconsulting/fm-odata-client/badge.svg?branch=main)](https://coveralls.io/github/soliantconsulting/fm-odata-client?branch=main)
 
 FileMaker OData client is a Typescript [OData](https://www.odata.org/) client specifically aimed at the
