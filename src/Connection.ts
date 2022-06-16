@@ -1,13 +1,13 @@
 import {Agent} from 'https';
-import fetch, {BodyInit, Headers, Request, Response} from 'node-fetch';
-import {URLSearchParams} from 'url';
+import type {URLSearchParams} from 'url';
+import type {BodyInit, Response} from 'node-fetch';
+import fetch, {Headers, Request} from 'node-fetch';
 import BatchRequest from './BatchRequest';
 import Database from './Database';
 
-export interface Authentication
-{
-    getAuthorizationHeader() : Promise<string>;
-}
+export type Authentication = {
+    getAuthorizationHeader : () => Promise<string>;
+};
 
 export type FetchParams = {
     search ?: URLSearchParams;
@@ -16,14 +16,12 @@ export type FetchParams = {
     contentType ?: string;
 };
 
-export class FetchError extends Error
-{
+export class FetchError extends Error {
     public constructor(
         message : string,
         public readonly errorCode : string,
         public readonly statusCode : number,
-    )
-    {
+    ) {
         super(message);
     }
 }
@@ -35,7 +33,9 @@ export type DatabaseListEntry = {
 };
 
 export type ServiceDocument<T> = {
+    /* eslint-disable @typescript-eslint/naming-convention */
     '@odata.context' : string;
+    /* eslint-enable @typescript-eslint/naming-convention */
     value : T;
 };
 
@@ -56,20 +56,17 @@ type Batch = {
     operations : BatchOperation[];
 };
 
-class Connection
-{
+class Connection {
     private static readonly agent = new Agent({keepAlive: true});
     private batch : Batch | null = null;
 
     public constructor(
-        private hostname : string,
-        private authentication : Authentication,
-    )
-    {
+        private readonly hostname : string,
+        private readonly authentication : Authentication,
+    ) {
     }
 
-    public async listDatabases() : Promise<DatabaseListEntry[]>
-    {
+    public async listDatabases() : Promise<DatabaseListEntry[]> {
         if (this.batch) {
             throw new Error('Databases cannot be listed from a batched connection');
         }
@@ -78,8 +75,7 @@ class Connection
         return response.value;
     }
 
-    public database(name : string) : Database
-    {
+    public database(name : string) : Database {
         if (this.batch) {
             throw new Error('Database objects cannot be created from a batched connection');
         }
@@ -90,8 +86,7 @@ class Connection
     /**
      * @internal
      */
-    public batchConnection(databaseName : string) : Connection
-    {
+    public batchConnection(databaseName : string) : Connection {
         const connection = new Connection(this.hostname, this.authentication);
         connection.batch = {databaseName, operations: []};
         return connection;
@@ -100,8 +95,7 @@ class Connection
     /**
      * @internal
      */
-    public async executeBatch() : Promise<void>
-    {
+    public async executeBatch() : Promise<void> {
         if (!this.batch) {
             throw new Error('A batch has not been started');
         }
@@ -114,7 +108,7 @@ class Connection
             `https://${this.hostname}/fmi/odata/v4/${this.batch.databaseName}`,
             await this.authentication.getAuthorizationHeader(),
             await Promise.all(this.batch.operations.map(
-                operation => this.createRequest(operation.path, operation.params)
+                async operation => this.createRequest(operation.path, operation.params)
             )),
         );
 
@@ -140,40 +134,27 @@ class Connection
     /**
      * @internal
      */
-    public async fetchNone(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<void>
-    {
+    public async fetchNone(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<void> {
         await this.fetch(path, params);
     }
 
     /**
      * @internal
      */
-    public async fetchJson<T>(path : string, params ?: FetchParams | Promise<FetchParams>) : Promise<T>;
-
-    /**
-     * @internal
-     */
-    public async fetchJson<T>(path : string, params ?: FetchParams | Promise<FetchParams>) : Promise<T | null>;
-
-    /**
-     * @internal
-     */
-    public async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T | null>
-    {
+    public async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T> {
         const response = await this.fetch(path, params);
 
         if (response.status === 204) {
             throw new Error('Response included no content');
         }
 
-        return response.json();
+        return await response.json() as T;
     }
 
     /**
      * @internal
      */
-    public async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob>
-    {
+    public async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob> {
         const response = await this.fetch(path, params);
         const contentType = response.headers.get('Content-Type');
         const buffer = await response.buffer();
@@ -181,8 +162,7 @@ class Connection
         return {buffer, type: contentType ?? 'application/octet-stream'};
     }
 
-    private async fetch(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Response>
-    {
+    private async fetch(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Response> {
         let response : Response;
 
         if (this.batch) {
@@ -200,7 +180,12 @@ class Connection
             let errorMessage = 'An unknown error occurred';
 
             try {
-                const data = await response.json();
+                const data = await response.json() as {
+                    error : {
+                        code : string;
+                        message : string;
+                    };
+                };
                 errorCode = data.error.code;
                 errorMessage = data.error.message;
             } catch (e) {
@@ -213,8 +198,7 @@ class Connection
         return response;
     }
 
-    private async createRequest(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Request>
-    {
+    private async createRequest(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Request> {
         params = await params;
         let url = `https://${this.hostname}/fmi/odata/v4${path}`;
 
@@ -245,8 +229,7 @@ class Connection
         });
     }
 
-    private static stringifySearch(search : URLSearchParams) : string
-    {
+    private static stringifySearch(search : URLSearchParams) : string {
         const specialTokens = {'%24': '$', '+': '%20', '%2F': '/', '%3D': '=', '%2C': ','};
         return search.toString().replace(
             /(%24|\+|%2F|%3D|%2C)/g,

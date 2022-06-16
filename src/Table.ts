@@ -1,7 +1,8 @@
-import * as FileType from 'file-type';
 import {URLSearchParams} from 'url';
-import {Blob, FetchParams, ServiceDocument} from './Connection';
-import Database from './Database';
+import {fromBuffer as fileTypeFromBuffer} from 'file-type';
+import {FetchError} from './Connection';
+import type {Blob, FetchParams, ServiceDocument} from './Connection';
+import type Database from './Database';
 
 export type FieldValue = string | number | Buffer;
 export type Repetition = {
@@ -35,8 +36,10 @@ export type CrossJoinParams = Omit<QueryParams, 'relatedTable' | 'select'> & {
 };
 
 export type Row = {
+    /* eslint-disable @typescript-eslint/naming-convention */
     '@odata.id' : string;
     '@odata.editLink' : string;
+    /* eslint-enable @typescript-eslint/naming-convention */
 } & Record<string, string | number>;
 
 export type QueryResultWithCount = {
@@ -55,20 +58,19 @@ export type PrimaryKey = string | number | Record<string, string | number>;
 
 export const allowedFileTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/tiff', 'application/pdf'];
 
-class Table<Batched extends boolean = false>
-{
+class Table<Batched extends boolean = false> {
     public constructor(
-        private database : Database<Batched>,
-        private name : string,
-        private batched : Batched = false as Batched,
-    )
-    {
+        private readonly database : Database<Batched>,
+        private readonly name : string,
+        private readonly batched : Batched = false as Batched,
+    ) {
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     public async create(data : RowData) : Promise<Batched extends false ? Row : void>;
-    public async create(data : RowData) : Promise<Row | void>
-    {
-        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    public async create(data : RowData) : Promise<Row | void> {
+        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
             '',
             (async () : Promise<FetchParams> => ({
                 method: 'POST',
@@ -77,10 +79,11 @@ class Table<Batched extends boolean = false>
         );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     public async update(id : PrimaryKey, data : RowData) : Promise<Batched extends false ? Row : void>;
-    public async update(id : PrimaryKey, data : RowData) : Promise<Row | void>
-    {
-        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    public async update(id : PrimaryKey, data : RowData) : Promise<Row | void> {
+        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
             `(${Table.compilePrimaryKey(id)})`,
             (async () : Promise<FetchParams> => ({
                 method: 'PATCH',
@@ -89,10 +92,11 @@ class Table<Batched extends boolean = false>
         );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     public async updateMany(filter : string, data : RowData) : Promise<Batched extends false ? Row[] : void>;
-    public async updateMany(filter : string, data : RowData) : Promise<Row[] | void>
-    {
-        return (this.batched ? this.fetchNone : this.fetchJson).bind(this)(
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    public async updateMany(filter : string, data : RowData) : Promise<Row[] | void> {
+        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
             '',
             (async () : Promise<FetchParams> => ({
                 method: 'PATCH',
@@ -102,21 +106,18 @@ class Table<Batched extends boolean = false>
         );
     }
 
-    public async delete(id : PrimaryKey) : Promise<void>
-    {
+    public async delete(id : PrimaryKey) : Promise<void> {
         return this.fetchNone(`(${Table.compilePrimaryKey(id)})`, {method: 'DELETE'});
     }
 
-    public async deleteMany(filter : string) : Promise<void>
-    {
+    public async deleteMany(filter : string) : Promise<void> {
         return this.fetchNone('', {
             method: 'DELETE',
             search: new URLSearchParams({$filter: filter}),
         });
     }
 
-    public async uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Promise<void>
-    {
+    public async uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Promise<void> {
         return this.fetchNone(
             `(${Table.compilePrimaryKey(id)})/${fieldName}`,
             (async () : Promise<FetchParams> => ({
@@ -127,35 +128,37 @@ class Table<Batched extends boolean = false>
         );
     }
 
-    public async count(filter ?: string) : Promise<number>
-    {
+    public async count(filter ?: string) : Promise<number> {
         return this.fetchJson<number>('/$count', {
-            search: !filter ? undefined : new URLSearchParams({
-                $filter: filter,
-            }),
+            search: !filter
+                ? undefined
+                : new URLSearchParams({
+                    $filter: filter,
+                }),
         });
     }
 
-    public async fetchById(id : PrimaryKey) : Promise<Row | null>
-    {
+    public async fetchById(id : PrimaryKey) : Promise<Row | null> {
         try {
             return await this.fetchJson(`(${Table.compilePrimaryKey(id)})`);
         } catch (e) {
-            if (e.statusCode === 404 && e.errorCode === '-1023') {
+            if (e instanceof FetchError && e.statusCode === 404 && e.errorCode === '-1023') {
                 return null;
+            }
+
+            if (e instanceof Error) {
+                console.log(e.toString());
             }
 
             throw e;
         }
     }
 
-    public async fetchField(id : PrimaryKey, fieldName : string) : Promise<Blob>
-    {
+    public async fetchField(id : PrimaryKey, fieldName : string) : Promise<Blob> {
         return this.fetchBlob(`(${Table.compilePrimaryKey(id)})/${fieldName}/$value`);
     }
 
-    public async fetchOne(params ?: FetchOneParams) : Promise<Row | null>
-    {
+    public async fetchOne(params ?: FetchOneParams) : Promise<Row | null> {
         const result = await this.query({...params, top: 1});
 
         if (result.length === 0) {
@@ -167,12 +170,14 @@ class Table<Batched extends boolean = false>
 
     public async query(params ?: QueryParams & {count : true}) : Promise<QueryResultWithCount>;
     public async query(params ?: QueryParams & {count ?: false}) : Promise<Row[]>;
-    public async query(params ?: QueryParams) : Promise<Row[] | QueryResultWithCount>
-    {
+    public async query(params ?: QueryParams) : Promise<Row[] | QueryResultWithCount> {
         const searchParams : URLSearchParams = params ? Table.compileQuerySearch(params) : new URLSearchParams();
         const path = params?.relatedTable ? Table.compileRelatedTablePath(params.relatedTable) : '';
 
-        const response = await this.fetchJson<ServiceDocument<Row[]> & {'@odata.count' : number}>(
+        const response = await this.fetchJson<ServiceDocument<Row[]> & {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '@odata.count' : number;
+        }>(
             path,
             {search: searchParams}
         );
@@ -187,16 +192,15 @@ class Table<Batched extends boolean = false>
     public async crossJoin(
         tables : string | string[],
         params ?: CrossJoinParams & {count : true}
-    ) : Promise<CrossJoinResultWithCount>
+    ) : Promise<CrossJoinResultWithCount>;
     public async crossJoin(
         tables : string | string[],
         params ?: CrossJoinParams & {count ?: false}
-    ) : Promise<CrossJoinRow[]>
+    ) : Promise<CrossJoinRow[]>;
     public async crossJoin(
         tables : string | string[],
         params ?: CrossJoinParams
-    ) : Promise<CrossJoinRow[] | CrossJoinResultWithCount>
-    {
+    ) : Promise<CrossJoinRow[] | CrossJoinResultWithCount> {
         const searchParams : URLSearchParams = params
             ? Table.compileQuerySearch({...params, select: undefined})
             : new URLSearchParams();
@@ -211,7 +215,10 @@ class Table<Batched extends boolean = false>
             );
         }
 
-        const response = await this.database.fetchJson<ServiceDocument<CrossJoinRow[]> & {'@odata.count' : number}>(
+        const response = await this.database.fetchJson<ServiceDocument<CrossJoinRow[]> & {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '@odata.count' : number;
+        }>(
             `/$crossjoin(${tableNames.join(',')})`,
             {search: searchParams}
         );
@@ -223,23 +230,19 @@ class Table<Batched extends boolean = false>
         return response.value;
     }
 
-    private async fetchNone(path : string, params : FetchParams | Promise<FetchParams>) : Promise<void>
-    {
+    private async fetchNone(path : string, params : FetchParams | Promise<FetchParams>) : Promise<void> {
         return this.database.fetchNone(`/${this.name}${path}`, params);
     }
 
-    private async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T>
-    {
+    private async fetchJson<T>(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<T> {
         return this.database.fetchJson<T>(`/${this.name}${path}`, params);
     }
 
-    private async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob>
-    {
+    private async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob> {
         return this.database.fetchBlob(`/${this.name}${path}`, params);
     }
 
-    private static async compileRowData(data : RowData) : Promise<Record<string, string | number>>
-    {
+    private static async compileRowData(data : RowData) : Promise<Record<string, string | number>> {
         const result : Record<string, string | number> = {};
 
         for (let [key, value] of Object.entries(data)) {
@@ -259,9 +262,8 @@ class Table<Batched extends boolean = false>
         return result;
     }
 
-    private static async getMimeType(data : Buffer) : Promise<string>
-    {
-        const fileType = await FileType.fromBuffer(data);
+    private static async getMimeType(data : Buffer) : Promise<string> {
+        const fileType = await fileTypeFromBuffer(data);
 
         if (!fileType || !allowedFileTypes.includes(fileType.mime)) {
             throw new Error('Invalid data, must be one of the following types: ' + allowedFileTypes.join(', '));
@@ -270,8 +272,7 @@ class Table<Batched extends boolean = false>
         return fileType.mime;
     }
 
-    private static compileQuerySearch(params : QueryParams) : URLSearchParams
-    {
+    private static compileQuerySearch(params : QueryParams) : URLSearchParams {
         const searchParams = new URLSearchParams();
 
         if (params.filter) {
@@ -301,8 +302,7 @@ class Table<Batched extends boolean = false>
         return searchParams;
     }
 
-    private static compileOrderBy(orderBy : string | OrderBy | Array<string | OrderBy>) : string
-    {
+    private static compileOrderBy(orderBy : string | OrderBy | Array<string | OrderBy>) : string {
         if (typeof orderBy === 'string') {
             return orderBy;
         }
@@ -318,8 +318,7 @@ class Table<Batched extends boolean = false>
         return `${orderBy.field} ${orderBy.direction}`;
     }
 
-    private static compilePrimaryKey(id : PrimaryKey) : string
-    {
+    private static compilePrimaryKey(id : PrimaryKey) : string {
         if (typeof id === 'object') {
             return Object.entries(id).map(([key, value]) => {
                 return `${key}=${Table.compilePrimaryKey(value)}`;
@@ -333,8 +332,7 @@ class Table<Batched extends boolean = false>
         return id.toString();
     }
 
-    private static compileRelatedTablePath(relatedTable : Exclude<QueryParams['relatedTable'], undefined>) : string
-    {
+    private static compileRelatedTablePath(relatedTable : Exclude<QueryParams['relatedTable'], undefined>) : string {
         if (Array.isArray(relatedTable)) {
             return `/${relatedTable.map(encodeURIComponent).join('/')}`;
         }

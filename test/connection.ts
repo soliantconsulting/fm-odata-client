@@ -1,16 +1,15 @@
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
-import 'mocha';
-import nock from 'nock';
 import {URLSearchParams} from 'url';
-import {Authentication, Connection} from '../src';
+import {expect, use} from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import 'mocha';
+import nock, {cleanAll, enableNetConnect} from 'nock';
+import type {Authentication} from '../src';
+import {Connection} from '../src';
 
 use(chaiAsPromised);
 
-class FakeAuth implements Authentication
-{
-    public getAuthorizationHeader() : Promise<string>
-    {
+class FakeAuth implements Authentication {
+    public async getAuthorizationHeader() : Promise<string> {
         return Promise.resolve('foobar');
     }
 }
@@ -20,9 +19,9 @@ describe('Connection', () => {
     const connection = new Connection('localhost', auth);
 
     afterEach(() => {
-        nock.cleanAll();
-        nock.enableNetConnect();
-    })
+        cleanAll();
+        enableNetConnect();
+    });
 
     describe('listDatabases', () => {
         it('should return a list of databases', async () => {
@@ -90,7 +89,7 @@ describe('Connection', () => {
             nock('https://localhost').post('/fmi/odata/v4/foo/$batch').reply(400);
 
             const batchedConnection = connection.batchConnection('foo');
-            batchedConnection.fetchNone('/foo');
+            void batchedConnection.fetchNone('/foo');
 
             await expect(batchedConnection.executeBatch()).to.eventually.be.rejectedWith('Batch request failed');
         });
@@ -104,13 +103,13 @@ describe('Connection', () => {
                 'Content-Type: text/plain',
                 '',
                 'foo',
-                '--foo--'
+                '--foo--',
             ].join('\r\n'), {
-                'Content-Type': 'multipart/mixed; boundary=foo'
+                'Content-Type': 'multipart/mixed; boundary=foo',
             });
 
             const batchedConnection = connection.batchConnection('foo');
-            batchedConnection.fetchNone('/foo');
+            void batchedConnection.fetchNone('/foo');
             const secondResponse = batchedConnection.fetchNone('/foo');
             await batchedConnection.executeBatch();
 
@@ -126,9 +125,9 @@ describe('Connection', () => {
                 'Content-Type: application/json',
                 '',
                 '{"foo": "bar"}',
-                '--foo--'
+                '--foo--',
             ].join('\r\n'), {
-                'Content-Type': 'multipart/mixed; boundary=foo'
+                'Content-Type': 'multipart/mixed; boundary=foo',
             });
 
             const batchedConnection = connection.batchConnection('foo');
@@ -140,17 +139,17 @@ describe('Connection', () => {
     });
 
     describe('fetchNone', () => {
-        it('should compile complete path', () => {
+        it('should compile complete path', async () => {
             nock('https://localhost').get('/fmi/odata/v4/foo').reply(204);
             return connection.fetchNone('/foo');
         });
 
-        it('should add search to request', () => {
+        it('should add search to request', async () => {
             nock('https://localhost').get('/fmi/odata/v4?foo=bar').reply(204);
             return connection.fetchNone('', {search: new URLSearchParams({foo: 'bar'})});
         });
 
-        it('should replace special characters in search params', () => {
+        it('should replace special characters in search params', async () => {
             nock('https://localhost').get('/fmi/odata/v4?$foo=a%20b%20c&$bar=d%20e%20f').reply(204);
             return connection.fetchNone('', {search: new URLSearchParams({
                 '$foo': 'a b c',
@@ -158,24 +157,24 @@ describe('Connection', () => {
             })});
         });
 
-        it('should default to GET', () => {
+        it('should default to GET', async () => {
             nock('https://localhost').get('/fmi/odata/v4').reply(204);
             return connection.fetchNone('');
         });
 
-        it('should use supplied method', () => {
+        it('should use supplied method', async () => {
             nock('https://localhost').post('/fmi/odata/v4').reply(204);
             return connection.fetchNone('', {method: 'POST'});
         });
 
-        it('should have no content type with GET and DELETE', () => {
+        it('should have no content type with GET and DELETE', async () => {
             nock('https://localhost')
                 .get('/fmi/odata/v4')
-                .matchHeader('Content-Type', v => v === undefined)
+                .matchHeader('Content-Type', v => (v as string | undefined) === undefined)
                 .reply(204);
             nock('https://localhost')
                 .delete('/fmi/odata/v4')
-                .matchHeader('Content-Type', v => v === undefined)
+                .matchHeader('Content-Type', v => (v as string | undefined) === undefined)
                 .reply(204);
 
             return Promise.all([
@@ -184,7 +183,7 @@ describe('Connection', () => {
             ]);
         });
 
-        it('should default to application/json with POST and PATCH', () => {
+        it('should default to application/json with POST and PATCH', async () => {
             nock('https://localhost').post('/fmi/odata/v4').matchHeader('Content-Type', 'application/json').reply(204);
             nock('https://localhost').patch('/fmi/odata/v4').matchHeader('Content-Type', 'application/json').reply(204);
 
@@ -194,22 +193,22 @@ describe('Connection', () => {
             ]);
         });
 
-        it('should send custom content type', () => {
+        it('should send custom content type', async () => {
             nock('https://localhost').post('/fmi/odata/v4').matchHeader('Content-Type', 'image/jpeg').reply(204);
             return connection.fetchNone('', {method: 'POST', contentType: 'image/jpeg'});
         });
 
-        it('should send application/json accept header', () => {
+        it('should send application/json accept header', async () => {
             nock('https://localhost').get('/fmi/odata/v4').matchHeader('Accept', 'application/json').reply(204);
             return connection.fetchNone('');
         });
 
-        it('should include body in request', () => {
+        it('should include body in request', async () => {
             nock('https://localhost').post('/fmi/odata/v4', 'test').reply(204);
             return connection.fetchNone('', {method: 'POST', body: 'test'});
         });
 
-        it('should include binary body in request', () => {
+        it('should include binary body in request', async () => {
             nock('https://localhost').post('/fmi/odata/v4', Buffer.from('\x01\x02')).reply(204);
             return connection.fetchNone('', {method: 'POST', body: Buffer.from('\x01\x02')});
         });
@@ -229,7 +228,7 @@ describe('Connection', () => {
             await expect(connection.fetchNone('')).to.eventually.be.rejectedWith('foo');
         });
 
-        it('should send authorization header from supplied Authentication', () => {
+        it('should send authorization header from supplied Authentication', async () => {
             nock('https://localhost')
                 .get('/fmi/odata/v4')
                 .matchHeader('Authorization', 'foobar')
@@ -239,7 +238,7 @@ describe('Connection', () => {
 
         it('should queue operation in batched context', () => {
             const batchedConnection = connection.batchConnection('foo');
-            batchedConnection.fetchNone('/foo');
+            void batchedConnection.fetchNone('/foo');
 
             /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
             expect(batchedConnection['batch']!.operations).to.be.lengthOf(1);
@@ -276,7 +275,7 @@ describe('Connection', () => {
 
         it('should forward fetch params', async () => {
             nock('https://localhost').post('/fmi/odata/v4').reply(200, '{}');
-            return await connection.fetchJson('', {method: 'POST'});
+            await connection.fetchJson('', {method: 'POST'});
         });
 
         it('should throw error on 204 response', async () => {

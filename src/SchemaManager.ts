@@ -1,4 +1,4 @@
-import Database from './Database';
+import type Database from './Database';
 
 type GenericField = {
     name : string;
@@ -40,11 +40,11 @@ type ContainerField = GenericField & {
 };
 
 export type Field = StringField
-    | NumericField
-    | DateField
-    | TimeField
-    | TimestampField
-    | ContainerField;
+| NumericField
+| DateField
+| TimeField
+| TimestampField
+| ContainerField;
 
 type FileMakerField = Omit<Field, 'type' | 'repetitions' | 'maxLength'> & {type : string};
 
@@ -53,15 +53,12 @@ type TableDefinition = {
     fields : FileMakerField[];
 };
 
-class SchemaManager
-{
-    public constructor(private database : Database)
-    {
+class SchemaManager {
+    public constructor(private readonly database : Database) {
     }
 
-    public async createTable(tableName : string, fields : Field[]) : Promise<TableDefinition>
-    {
-        return this.database.fetchJson<TableDefinition>(`/FileMaker_Tables`, {
+    public async createTable(tableName : string, fields : Field[]) : Promise<TableDefinition> {
+        return this.database.fetchJson<TableDefinition>('/FileMaker_Tables', {
             method: 'POST',
             body: JSON.stringify({
                 tableName,
@@ -70,39 +67,33 @@ class SchemaManager
         });
     }
 
-    public async addFields(tableName : string, fields : Field[]) : Promise<TableDefinition>
-    {
+    public async addFields(tableName : string, fields : Field[]) : Promise<TableDefinition> {
         return this.database.fetchJson<TableDefinition>(`/FileMaker_Tables/${tableName}`, {
             method: 'PATCH',
             body: JSON.stringify({fields: fields.map(SchemaManager.compileFieldDefinition)}),
         });
     }
 
-    public async deleteTable(tableName : string) : Promise<void>
-    {
+    public async deleteTable(tableName : string) : Promise<void> {
         return this.database.fetchNone(`/FileMaker_Tables/${tableName}`, {method: 'DELETE'});
     }
 
-    public async deleteField(tableName : string, fieldName : string) : Promise<void>
-    {
+    public async deleteField(tableName : string, fieldName : string) : Promise<void> {
         return this.database.fetchNone(`/FileMaker_Tables/${tableName}/${fieldName}`, {method: 'DELETE'});
     }
 
-    public async createIndex(tableName : string, fieldName : string) : Promise<{indexName : string}>
-    {
+    public async createIndex(tableName : string, fieldName : string) : Promise<{indexName : string}> {
         return this.database.fetchJson<{indexName : string}>(`/FileMaker_Indexes/${tableName}`, {
             method: 'POST',
             body: JSON.stringify({indexName: fieldName}),
         });
     }
 
-    public async deleteIndex(tableName : string, fieldName : string) : Promise<void>
-    {
+    public async deleteIndex(tableName : string, fieldName : string) : Promise<void> {
         return this.database.fetchNone(`/FileMaker_Indexes/${tableName}/${fieldName}`, {method: 'DELETE'});
     }
 
-    private static compileFieldDefinition(field : Field) : FileMakerField
-    {
+    private static compileFieldDefinition(field : Field) : FileMakerField {
         const fieldCopy = {...field};
         let type : string = fieldCopy.type;
 
@@ -115,7 +106,7 @@ class SchemaManager
             }
         }
 
-        if (fieldCopy.repetitions !== undefined) {
+        if (field.repetitions !== undefined) {
             type += `[${field.repetitions}]`;
             fieldCopy.repetitions = undefined;
         }

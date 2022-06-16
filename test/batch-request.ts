@@ -1,5 +1,5 @@
 import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
+import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import {Headers, Request} from 'node-fetch';
 import BatchRequest from '../src/BatchRequest';
@@ -22,9 +22,10 @@ describe('BatchRequest', () => {
             const request = new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo'),
             ]).toRequest();
-            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            const [, boundary] = request.headers.get('Content-Type')!
-                .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
+            /* eslint-disable @typescript-eslint/no-non-null-assertion */
+            const [, boundary] = (/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)
+                .exec((request.headers.get('Content-Type')!))!;
+            /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
             await expect(request.text()).to.eventually.equal([
                 `--${boundary}`,
@@ -87,9 +88,10 @@ describe('BatchRequest', () => {
             ]).toRequest();
 
             const body = await request.text();
-            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            const [, boundary] = request.headers.get('Content-Type')!
-                .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
+            /* eslint-disable @typescript-eslint/no-non-null-assertion */
+            const [, boundary] = (/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)
+                .exec((request.headers.get('Content-Type')!))!;
+            /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
             const batchParts = body.split(`--${boundary}`).slice(1, -1);
             const changeSetBoundaryRegexp = /^Content-Type: multipart\/mixed; boundary=(changeset_[a-z0-9]{32})\r\n/;
@@ -98,7 +100,7 @@ describe('BatchRequest', () => {
 
             expect(changeset).to.match(changeSetBoundaryRegexp);
             /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            const [, changesetBoundary] = changeset.match(changeSetBoundaryRegexp)!;
+            const [, changesetBoundary] = changeSetBoundaryRegexp.exec(changeset)!;
             const changesetParts = changeset.split(`--${changesetBoundary}`).slice(1, -1);
 
             expect(changesetParts).to.eql([[
@@ -122,9 +124,10 @@ describe('BatchRequest', () => {
             ]).toRequest();
 
             const body = await request.text();
-            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-            const [, boundary] = request.headers.get('Content-Type')!
-                .match(/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)!;
+            /* eslint-disable @typescript-eslint/no-non-null-assertion */
+            const [, boundary] = (/^multipart\/mixed; boundary=(batch_[a-z0-9]{32})$/)
+                .exec((request.headers.get('Content-Type')!))!;
+            /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
             const batchParts = body.split(`--${boundary}`).slice(1, -1);
 
@@ -145,8 +148,8 @@ describe('BatchRequest', () => {
                 'Content-Type: text/plain',
                 '',
                 'foo',
-                '--foo--'
-            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}))
+                '--foo--',
+            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}));
 
             expect(response.headers.get('Content-Type')).to.equal('text/plain');
             await expect(response.text()).to.eventually.equal('foo');
@@ -160,7 +163,7 @@ describe('BatchRequest', () => {
                 'HTTP/1.1 200 OK',
                 '',
                 'foo',
-            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}))
+            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}));
 
             await expect(response.text()).to.eventually.equal('foo');
         });
@@ -178,28 +181,28 @@ describe('BatchRequest', () => {
                 'foo',
                 '--bar--',
                 '--foo--',
-            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}))
+            ].join('\r\n'), new Headers({'Content-Type': 'multipart/mixed; boundary=foo'}));
 
             await expect(response.text()).to.eventually.equal('foo');
         });
 
-        it('should throw error on missing parent content-type header', async () => {
+        it('should throw error on missing parent content-type header', () => {
             expect(BatchRequest.parseMultipartResponse.bind(
                 BatchRequest,
                 '',
-                new Headers())
-            ).to.throw('Response is missing Content-Type header');
+                new Headers()
+            )).to.throw('Response is missing Content-Type header');
         });
 
-        it('should throw error on missing boundary on content-type header', async () => {
+        it('should throw error on missing boundary on content-type header', () => {
             expect(BatchRequest.parseMultipartResponse.bind(
                 BatchRequest,
                 '',
-                new Headers({'Content-Type': 'multipart'}))
-            ).to.throw('Content-Type header is missing boundary');
+                new Headers({'Content-Type': 'multipart'})
+            )).to.throw('Content-Type header is missing boundary');
         });
 
-        it('should throw error on missing content-type header', async () => {
+        it('should throw error on missing content-type header', () => {
             expect(BatchRequest.parseMultipartResponse.bind(BatchRequest, [
                 '--foo',
                 '',
@@ -210,7 +213,7 @@ describe('BatchRequest', () => {
                 .to.throw('Multipart part is missing content-type header');
         });
 
-        it('should throw error on unknown content-type header', async () => {
+        it('should throw error on unknown content-type header', () => {
             expect(BatchRequest.parseMultipartResponse.bind(BatchRequest, [
                 '--foo',
                 'Content-Type: text/plain',

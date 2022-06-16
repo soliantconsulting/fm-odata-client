@@ -1,10 +1,14 @@
 import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
+import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import sinon, {SinonStubbedInstance} from 'sinon';
-import {Blob, Connection, Database, FetchParams} from '../src';
+import type {SinonStubbedInstance} from 'sinon';
+import sinon from 'sinon';
+import type {Blob, FetchParams} from '../src';
+import {Connection, Database} from '../src';
 
 use(chaiAsPromised);
+
+/* eslint-disable @typescript-eslint/unbound-method */
 
 describe('Database', () => {
     let connectionStub : SinonStubbedInstance<Connection>;
@@ -41,7 +45,9 @@ describe('Database', () => {
 
         it('should return resolved array promised from executor', async () => {
             connectionStub.batchConnection.returns(connectionStub as unknown as Connection);
-            await expect(database.batch(() => [new Promise(resolve => resolve('foo'))])).to.eventually.be.eql(['foo']);
+            await expect(database.batch(() => [new Promise(resolve => {
+                resolve('foo');
+            })])).to.eventually.be.eql(['foo']);
         });
     });
 
@@ -112,7 +118,7 @@ describe('Database', () => {
     describe('runScript', () => {
         it('should return script result', async () => {
             connectionStub.fetchJson.returns(Promise.resolve({
-                scriptResult: {code: 0, resultParameter: ''}
+                scriptResult: {code: 0, resultParameter: ''},
             }));
             const result = await database.runScript('baz');
             expect(result).to.be.eql({code: 0, resultParameter: ''});
@@ -121,7 +127,7 @@ describe('Database', () => {
 
         it('should return include script parameter', async () => {
             connectionStub.fetchJson.returns(Promise.resolve({
-                scriptResult: {code: 0, resultParameter: ''}
+                scriptResult: {code: 0, resultParameter: ''},
             }));
             await database.runScript('baz', 'param');
             sinon.assert.calledWith(connectionStub.fetchJson, '/foo/Script.baz', {

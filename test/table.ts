@@ -1,13 +1,17 @@
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
-import 'mocha';
 import {promises as fs} from 'fs';
 import * as path from 'path';
-import sinon, {SinonStubbedInstance} from 'sinon';
 import {URLSearchParams} from 'url';
-import {Database, Table} from '../src';
+import {expect, use} from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import 'mocha';
+import type {SinonStubbedInstance} from 'sinon';
+import sinon from 'sinon';
+import {Database, FetchError, Table} from '../src';
+import {matchFetchParams} from './test-utils';
 
 use(chaiAsPromised);
+
+/* eslint-disable @typescript-eslint/unbound-method */
 
 describe('Table', () => {
     let databaseStub : SinonStubbedInstance<Database>;
@@ -115,7 +119,10 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchNone,
                 '/foo',
-                {method: 'DELETE', search: new URLSearchParams({$filter: 'foo'})}
+                matchFetchParams({
+                    method: 'DELETE',
+                    search: new URLSearchParams({$filter: 'foo'}),
+                })
             );
         });
     });
@@ -193,14 +200,14 @@ describe('Table', () => {
             sinon.assert.calledWith(databaseStub.fetchJson, '/foo/$count', {search: undefined});
         });
 
-        it('should include search withh filter', async () => {
+        it('should include search with filter', async () => {
             databaseStub.fetchJson.returns(Promise.resolve(1));
             const count = await table.count('bar eq 2');
             expect(count).to.equal(1);
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo/$count',
-                {search: new URLSearchParams({$filter: 'bar eq 2'})}
+                matchFetchParams({search: new URLSearchParams({$filter: 'bar eq 2'})})
             );
         });
     });
@@ -213,7 +220,7 @@ describe('Table', () => {
         });
 
         it('should return null on 404 response with specific error code', async () => {
-            databaseStub.fetchJson.rejects({statusCode: 404, errorCode: '-1023'});
+            databaseStub.fetchJson.rejects(new FetchError('Not found', '-1023', 404));
             const result = table.fetchById('bar');
             await expect(result).to.eventually.be.null;
         });
@@ -271,7 +278,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$top: '1'})}
+                matchFetchParams({search: new URLSearchParams({$top: '1'})})
             );
         });
 
@@ -281,7 +288,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$top: '1', $skip: '1'})}
+                matchFetchParams({search: new URLSearchParams({$top: '1', $skip: '1'})})
             );
         });
 
@@ -311,7 +318,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$filter: 'foo'})}
+                matchFetchParams({search: new URLSearchParams({$filter: 'foo'})})
             );
         });
 
@@ -321,7 +328,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$orderby: 'foo'})}
+                matchFetchParams({search: new URLSearchParams({$orderby: 'foo'})})
             );
         });
 
@@ -331,7 +338,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$orderby: 'foo desc'})}
+                matchFetchParams({search: new URLSearchParams({$orderby: 'foo desc'})})
             );
         });
 
@@ -341,7 +348,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$orderby: 'foo'})}
+                matchFetchParams({search: new URLSearchParams({$orderby: 'foo'})})
             );
         });
 
@@ -351,7 +358,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$orderby: 'foo,bar desc'})}
+                matchFetchParams({search: new URLSearchParams({$orderby: 'foo,bar desc'})})
             );
         });
 
@@ -361,7 +368,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$top: '1'})}
+                matchFetchParams({search: new URLSearchParams({$top: '1'})})
             );
         });
 
@@ -371,7 +378,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$skip: '1'})}
+                matchFetchParams({search: new URLSearchParams({$skip: '1'})})
             );
         });
 
@@ -382,7 +389,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$count: 'true'})}
+                matchFetchParams({search: new URLSearchParams({$count: 'true'})})
             );
         });
 
@@ -392,7 +399,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo',
-                {search: new URLSearchParams({$select: 'foo,bar'})}
+                matchFetchParams({search: new URLSearchParams({$select: 'foo,bar'})})
             );
         });
 
@@ -402,7 +409,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo/ba%2Br',
-                {search: new URLSearchParams()}
+                matchFetchParams({search: new URLSearchParams()})
             );
         });
 
@@ -412,7 +419,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo/ba%2Br/baz',
-                {search: new URLSearchParams()}
+                matchFetchParams({search: new URLSearchParams()})
             );
         });
 
@@ -422,7 +429,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/foo(1)/bar',
-                {search: new URLSearchParams()}
+                matchFetchParams({search: new URLSearchParams()})
             );
         });
     });
@@ -435,7 +442,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/$crossjoin(foo,bar)',
-                {search: new URLSearchParams()}
+                matchFetchParams({search: new URLSearchParams()})
             );
         });
 
@@ -445,7 +452,7 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/$crossjoin(foo,bar,baz)',
-                {search: new URLSearchParams()}
+                matchFetchParams({search: new URLSearchParams()})
             );
         });
 
@@ -455,9 +462,9 @@ describe('Table', () => {
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 '/$crossjoin(foo,bar)',
-                {search: new URLSearchParams({
+                matchFetchParams({search: new URLSearchParams({
                     $expand: 'foo($select=bar,baz)',
-                })}
+                })})
             );
         });
 

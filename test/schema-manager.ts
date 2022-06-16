@@ -1,10 +1,13 @@
 import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
+import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import sinon, {SinonStubbedInstance} from 'sinon';
+import type {SinonStubbedInstance} from 'sinon';
+import sinon from 'sinon';
 import {Database, SchemaManager} from '../src';
 
 use(chaiAsPromised);
+
+/* eslint-disable @typescript-eslint/unbound-method */
 
 describe('SchemaManager', () => {
     let databaseStub : SinonStubbedInstance<Database>;

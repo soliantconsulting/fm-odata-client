@@ -4,24 +4,21 @@ import {Headers, Request, Response} from 'node-fetch';
 /**
  * @internal
  */
-class BatchRequest
-{
-    private operations : Array<Request | Request[]> = [];
+class BatchRequest {
+    private readonly operations : Array<Request | Request[]> = [];
     private lastChangeset : Request[] | null = null;
 
     public constructor(
-        private serviceEndpoint : string,
-        private authorizationHeader : string,
+        private readonly serviceEndpoint : string,
+        private readonly authorizationHeader : string,
         operations : Request[],
-    )
-    {
+    ) {
         for (const operation of operations) {
             this.addRequest(operation);
         }
     }
 
-    public toRequest() : Request
-    {
+    public toRequest() : Request {
         const boundary = `batch_${Crypto.randomBytes(16).toString('hex')}`;
         const headers = new Headers({
             Authorization: this.authorizationHeader,
@@ -52,8 +49,7 @@ class BatchRequest
         });
     }
 
-    public static parseMultipartResponse(body : string, headers : Headers) : Response[]
-    {
+    public static parseMultipartResponse(body : string, headers : Headers) : Response[] {
         const boundary = BatchRequest.getBoundary(headers);
         const endBoundaryIndex = body.indexOf(`--${boundary}--`);
 
@@ -92,8 +88,7 @@ class BatchRequest
         return responses;
     }
 
-    public static parseHttpResponse(rawResponse : string) : Response
-    {
+    public static parseHttpResponse(rawResponse : string) : Response {
         const firstBreakIndex = rawResponse.indexOf('\r\n');
         const statusLine = rawResponse.slice(0, firstBreakIndex);
         rawResponse = rawResponse.slice(firstBreakIndex + 2);
@@ -108,8 +103,7 @@ class BatchRequest
         });
     }
 
-    public static splitPart(part : string) : [Headers, string]
-    {
+    public static splitPart(part : string) : [Headers, string] {
         if (part.startsWith('\r\n')) {
             return [new Headers(), part.replace(/^\r\n/, '')];
         }
@@ -128,8 +122,7 @@ class BatchRequest
         return [headers, rawBody];
     }
 
-    private static getBoundary(headers : Headers) : string
-    {
+    private static getBoundary(headers : Headers) : string {
         const contentType = headers.get('Content-Type');
 
         if (!contentType) {
@@ -146,8 +139,7 @@ class BatchRequest
         return boundary;
     }
 
-    private static formatRequest(request : Request) : string
-    {
+    private static formatRequest(request : Request) : string {
         return [
             'Content-Type: application/http',
             'Content-Transfer-Encoding: binary',
@@ -159,8 +151,7 @@ class BatchRequest
         ].join('\r\n');
     }
 
-    private static formatRequestHeaders(headers : Headers) : string[]
-    {
+    private static formatRequestHeaders(headers : Headers) : string[] {
         const result : string[] = [];
 
         for (const [key, value] of headers.entries()) {
@@ -174,8 +165,7 @@ class BatchRequest
         return result;
     }
 
-    private addRequest(request : Request) : void
-    {
+    private addRequest(request : Request) : void {
         if (request.method === 'GET') {
             this.lastChangeset = null;
             this.operations.push(request);

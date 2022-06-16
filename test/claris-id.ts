@@ -3,14 +3,16 @@ import {
     CognitoIdToken,
     CognitoRefreshToken,
     CognitoUser,
-    CognitoUserSession
+    CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised'
+import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import nock from 'nock';
-import fetch, {Headers, Request, Response} from 'node-fetch';
-import sinon, {SinonSandbox} from 'sinon';
+import nock, {cleanAll, enableNetConnect} from 'nock';
+import type {Headers, Request, Response} from 'node-fetch';
+import fetch from 'node-fetch';
+import type {SinonSandbox} from 'sinon';
+import sinon from 'sinon';
 import {ClarisId} from '../src';
 
 use(chaiAsPromised);
@@ -63,8 +65,8 @@ describe('ClarisId', () => {
 
     afterEach(() => {
         sandbox.restore();
-        nock.cleanAll();
-        nock.enableNetConnect();
+        cleanAll();
+        enableNetConnect();
     });
 
     describe('getAuthorizationHeader', () => {
@@ -187,18 +189,20 @@ describe('ClarisId', () => {
     describe('polyfillGlobalFetch', () => {
         const polyfillGlobal = global as NodeJS.Global & {
             fetch ?: typeof fetch;
+            /* eslint-disable @typescript-eslint/naming-convention */
             Response ?: typeof Response;
             Headers ?: typeof Headers;
             Request ?: typeof Request;
+            /* eslint-enable @typescript-eslint/naming-convention */
         };
 
-        it('should inject global fetch when not present', async () => {
+        it('should inject global fetch when not present', () => {
             polyfillGlobal.fetch = undefined;
             new ClarisId('foo', 'bar');
             expect(polyfillGlobal.fetch).to.equal(fetch);
         });
 
-        it('should not override existing polyfill', async () => {
+        it('should not override existing polyfill', () => {
             const fetchStub = () => {
                 // Empty stub.
             };
