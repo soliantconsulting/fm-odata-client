@@ -67,57 +67,80 @@ class Table<Batched extends boolean = false> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async create(data : RowData) : Promise<Batched extends false ? Row : void>;
+    public create(data : RowData) : Batched extends false ? Promise<Row> : void;
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async create(data : RowData) : Promise<Row | void> {
-        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
-            '',
-            (async () : Promise<FetchParams> => ({
-                method: 'POST',
-                body: JSON.stringify(await Table.compileRowData(data)),
-            }))()
-        );
+    public create(data : RowData) : Promise<Row> | void {
+        const path = '';
+        const params = (async () : Promise<FetchParams> => ({
+            method: 'POST',
+            body: JSON.stringify(await Table.compileRowData(data)),
+        }))();
+
+        if (this.batched) {
+            void this.fetchNone(path, params);
+            return;
+        }
+
+        return this.fetchJson(path, params);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async update(id : PrimaryKey, data : RowData) : Promise<Batched extends false ? Row : void>;
+    public update(id : PrimaryKey, data : RowData) : Batched extends false ? Promise<Row> : void;
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async update(id : PrimaryKey, data : RowData) : Promise<Row | void> {
-        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
-            `(${Table.compilePrimaryKey(id)})`,
-            (async () : Promise<FetchParams> => ({
-                method: 'PATCH',
-                body: JSON.stringify(await Table.compileRowData(data)),
-            }))()
-        );
+    public update(id : PrimaryKey, data : RowData) : Promise<Row> | void {
+        const path = `(${Table.compilePrimaryKey(id)})`;
+        const params = (async () : Promise<FetchParams> => ({
+            method: 'PATCH',
+            body: JSON.stringify(await Table.compileRowData(data)),
+        }))();
+
+        if (this.batched) {
+            void this.fetchNone(path, params);
+            return;
+        }
+
+        return this.fetchJson(path, params);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async updateMany(filter : string, data : RowData) : Promise<Batched extends false ? Row[] : void>;
+    public updateMany(filter : string, data : RowData) : Batched extends false ? Promise<Row[]> : void;
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    public async updateMany(filter : string, data : RowData) : Promise<Row[] | void> {
-        return (this.batched ? this.fetchNone.bind(this) : this.fetchJson.bind(this))(
-            '',
-            (async () : Promise<FetchParams> => ({
-                method: 'PATCH',
-                search: new URLSearchParams({$filter: filter}),
-                body: JSON.stringify(await Table.compileRowData(data)),
-            }))()
-        );
+    public updateMany(filter : string, data : RowData) : Promise<Row[]> | void {
+        const path = '';
+        const params = (async () : Promise<FetchParams> => ({
+            method: 'PATCH',
+            search: new URLSearchParams({$filter: filter}),
+            body: JSON.stringify(await Table.compileRowData(data)),
+        }))();
+
+        if (this.batched) {
+            void this.fetchNone(path, params);
+            return;
+        }
+
+        return this.fetchJson(path, params);
     }
 
-    public async delete(id : PrimaryKey) : Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    public delete(id : PrimaryKey) : Batched extends false ? Promise<void> : void;
+    public delete(id : PrimaryKey) : Promise<void> | void {
         return this.fetchNone(`(${Table.compilePrimaryKey(id)})`, {method: 'DELETE'});
     }
 
-    public async deleteMany(filter : string) : Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    public deleteMany(filter : string) : Batched extends false ? Promise<void> : void;
+    public deleteMany(filter : string) : Promise<void> | void {
         return this.fetchNone('', {
             method: 'DELETE',
             search: new URLSearchParams({$filter: filter}),
         });
     }
 
-    public async uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Promise<void> {
+    public uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Batched extends false
+        ? Promise<void>
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+        : void;
+    public uploadBinary(id : PrimaryKey, fieldName : string, data : Buffer) : Promise<void> | void {
         return this.fetchNone(
             `(${Table.compilePrimaryKey(id)})/${fieldName}`,
             (async () : Promise<FetchParams> => ({
