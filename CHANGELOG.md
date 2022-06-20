@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.3...v1.0.4) (2022-06-20)
+
+
+### Bug Fixes
+
+* **Table:** allow null values being returned by create and update commands ([c8cda68](https://github.com/soliantconsulting/fm-odata-client/commit/c8cda68cbac883f0fd75422e7563bdc1cdcde9eb))
+
 ## [1.0.3](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.2...v1.0.3) (2022-06-20)
 
 
