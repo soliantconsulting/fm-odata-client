@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.2...v1.0.3) (2022-06-20)
+
+
+### Bug Fixes
+
+* **Table:** allow null values in cross join result ([52e949b](https://github.com/soliantconsulting/fm-odata-client/commit/52e949b5dc55aeec189918204420280bc3232817))
+
 ## [1.0.2](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.1...v1.0.2) (2022-06-20)
 
 
