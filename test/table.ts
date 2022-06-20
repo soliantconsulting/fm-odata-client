@@ -446,7 +446,7 @@ describe('Table', () => {
             );
         });
 
-        it('should join single table', async () => {
+        it('should join two tables', async () => {
             databaseStub.fetchJson.returns(Promise.resolve({value: []}));
             await table.crossJoin(['bar', 'baz']);
             sinon.assert.calledWith(
