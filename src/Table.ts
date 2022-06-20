@@ -265,11 +265,11 @@ class Table<Batched extends boolean = false> {
         return this.database.fetchBlob(`/${this.name}${path}`, params);
     }
 
-    private static async compileRowData(data : RowData) : Promise<Record<string, string | number>> {
-        const result : Record<string, string | number> = {};
+    private static async compileRowData(data : RowData) : Promise<Record<string, string | number | null>> {
+        const result : Record<string, string | number | null> = {};
 
         for (let [key, value] of Object.entries(data)) {
-            if (typeof value === 'object' && !(value instanceof Buffer)) {
+            if (value !== null && typeof value === 'object' && !(value instanceof Buffer)) {
                 key = `${key}[${value.repetition}]`;
                 value = value.value;
             }
