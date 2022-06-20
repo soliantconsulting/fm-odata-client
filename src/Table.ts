@@ -4,7 +4,7 @@ import {FetchError} from './Connection';
 import type {Blob, FetchParams, ServiceDocument} from './Connection';
 import type Database from './Database';
 
-export type FieldValue = string | number | Buffer;
+export type FieldValue = string | number | Buffer | null;
 export type Repetition = {
     repetition : number;
     value : FieldValue;
