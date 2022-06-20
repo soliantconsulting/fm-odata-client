@@ -40,7 +40,7 @@ export type Row = {
     '@odata.id' : string;
     '@odata.editLink' : string;
     /* eslint-enable @typescript-eslint/naming-convention */
-} & Record<string, string | number>;
+} & Record<string, string | number | null>;
 
 export type QueryResultWithCount = {
     count : number;
