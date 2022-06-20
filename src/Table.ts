@@ -47,7 +47,7 @@ export type QueryResultWithCount = {
     rows : Row[];
 };
 
-export type CrossJoinRow = Record<string, string | number>;
+export type CrossJoinRow = Record<string, string | number | null>;
 
 export type CrossJoinResultWithCount = {
     count : number;
