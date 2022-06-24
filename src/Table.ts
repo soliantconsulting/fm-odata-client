@@ -169,10 +169,6 @@ class Table<Batched extends boolean = false> {
                 return null;
             }
 
-            if (e instanceof Error) {
-                console.log(e.toString());
-            }
-
             throw e;
         }
     }
