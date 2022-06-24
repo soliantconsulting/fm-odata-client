@@ -1,3 +1,11 @@
+## [1.0.5](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.4...v1.0.5) (2022-06-24)
+
+
+### Bug Fixes
+
+* **Table:** remove debugging console.log ([3abd765](https://github.com/soliantconsulting/fm-odata-client/commit/3abd765d53d1b59d3ad292e6d3df457050b7e358))
+* **Table:** use arrays to denote composite primary keys instead of objects ([072696d](https://github.com/soliantconsulting/fm-odata-client/commit/072696d34bdedd420e22967e34efb2dbe0a64467))
+
 ## [1.0.4](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.3...v1.0.4) (2022-06-20)
 
 
