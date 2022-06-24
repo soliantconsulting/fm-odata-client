@@ -54,7 +54,7 @@ export type CrossJoinResultWithCount = {
     rows : CrossJoinRow[];
 };
 
-export type PrimaryKey = string | number | Record<string, string | number>;
+export type PrimaryKey = string | number | Array<string | number>;
 
 export const allowedFileTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/tiff', 'application/pdf'];
 
@@ -342,10 +342,8 @@ class Table<Batched extends boolean = false> {
     }
 
     private static compilePrimaryKey(id : PrimaryKey) : string {
-        if (typeof id === 'object') {
-            return Object.entries(id).map(([key, value]) => {
-                return `${key}=${Table.compilePrimaryKey(value)}`;
-            }).join(',');
+        if (Array.isArray(id)) {
+            return id.map(Table.compilePrimaryKey).join(',');
         }
 
         if (typeof id === 'string') {

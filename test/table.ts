@@ -249,12 +249,12 @@ describe('Table', () => {
             );
         });
 
-        it('should encode an object value', async () => {
+        it('should encode an array value', async () => {
             databaseStub.fetchJson.returns(Promise.resolve({}));
-            await table.fetchById({bar: 'baz', bat: 1});
+            await table.fetchById(['baz', 1]);
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
-                "/foo(bar='baz',bat=1)",
+                "/foo('baz',1)",
             );
         });
     });
