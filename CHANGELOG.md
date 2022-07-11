@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.5...v1.1.0) (2022-07-11)
+
+
+### Features
+
+* **Connection:** add lax parsing option to handle non encoded newlines in JSON responses ([bd14088](https://github.com/soliantconsulting/fm-odata-client/commit/bd14088ddf2ae3259938f2e411be2a18277d19a4))
+
 ## [1.0.5](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.4...v1.0.5) (2022-06-24)
 
 
