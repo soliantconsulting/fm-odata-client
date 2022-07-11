@@ -63,6 +63,7 @@ class Connection {
     public constructor(
         private readonly hostname : string,
         private readonly authentication : Authentication,
+        private readonly laxParsing = false,
     ) {
     }
 
@@ -148,7 +149,7 @@ class Connection {
             throw new Error('Response included no content');
         }
 
-        return await response.json() as T;
+        return await this.parseResponseJson<T>(response);
     }
 
     /**
@@ -180,12 +181,12 @@ class Connection {
             let errorMessage = 'An unknown error occurred';
 
             try {
-                const data = await response.json() as {
+                const data = await this.parseResponseJson<{
                     error : {
                         code : string;
                         message : string;
                     };
-                };
+                }>(response);
                 errorCode = data.error.code;
                 errorMessage = data.error.message;
             } catch (e) {
@@ -227,6 +228,19 @@ class Connection {
             body: params.body,
             headers,
         });
+    }
+
+    private async parseResponseJson<T = unknown>(response : Response) : Promise<T> {
+        if (!this.laxParsing) {
+            return await response.json() as T;
+        }
+
+        const json = await response.text();
+        const cleanedJson = json.replace(/"(?:(?=(\\?))\1.)*?"/gs, substring => {
+            return substring.replace(/(?<!\\)((?:\\\\)*)\n/g, '$1\\n');
+        });
+
+        return await JSON.parse(cleanedJson) as T;
     }
 
     private static stringifySearch(search : URLSearchParams) : string {

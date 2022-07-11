@@ -16,7 +16,7 @@ FileMaker OData client is a Typescript [OData](https://www.odata.org/) client sp
 - If you use FileMaker Cloud, you also need to install the following package:
 
     `npm install amazon-cognito-identity-js`
-  
+
 ## Quick Start
 
 To get started, you need to create a connection instance. Depending on the FileMaker host type, you have two different
@@ -37,6 +37,12 @@ options:
     ````  
 
 This will give you a connection instance which allows you to issue queries against the OData API.
+
+### Note about FileMaker related OData issues
+
+At the time of writing, the FileMaker OData API suffers an issue where it incorrectly includes unescaped newline
+characters in JSON responses. If you are using a version affected by this issue, you can set the third parameter of the
+`Connection` constructor to `true` to enable lax parsing which will work around this issue.
 
 ### Listing all databases
 

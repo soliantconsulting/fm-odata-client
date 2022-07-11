@@ -283,4 +283,56 @@ describe('Connection', () => {
             await expect(connection.fetchJson('')).to.eventually.rejectedWith('Response included no content');
         });
     });
+
+    describe('laxParsing', () => {
+        it('should error with non encoded newlines without lax parsing in JSON response', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(200, '{"foo": "bar\nbaz"}');
+            const response = connection.fetchJson('');
+            await expect(response).to.eventually.be.rejectedWith('invalid json response body at');
+        });
+
+        it('should error with non encoded newlines without lax parsing in error response', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(
+                400,
+                '{"error": {"code": "101", "message": "bar\nbaz"}}'
+            );
+            const response = connection.fetchJson('');
+            await expect(response).to.eventually.be.rejectedWith('An unknown error occurred');
+        });
+
+        const laxConnection = new Connection('localhost', auth, true);
+
+        it('should succeed with non encoded newlines with lax parsing in JSON response', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(200, '{"foo": "bar\nbaz"}');
+            const response = await laxConnection.fetchJson('');
+            expect(response).to.be.eql({foo: 'bar\nbaz'});
+        });
+
+        it('should not encode newlines outside of strings', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(200, '{"foo":\n"bar"}');
+            const response = await laxConnection.fetchJson('');
+            expect(response).to.be.eql({foo: 'bar'});
+        });
+
+        it('should not double encoded newlines inside of strings', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(200, '{"foo": "bar\\nbaz"}');
+            const response = await laxConnection.fetchJson('');
+            expect(response).to.be.eql({foo: 'bar\nbaz'});
+        });
+
+        it('should encode newlines prefixed by double backslash', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(200, '{"foo": "bar\\\\\nbaz"}');
+            const response = await laxConnection.fetchJson('');
+            expect(response).to.be.eql({foo: 'bar\\\nbaz'});
+        });
+
+        it('should succeed with non encoded newlines in error response', async () => {
+            nock('https://localhost').get('/fmi/odata/v4').reply(
+                400,
+                '{"error": {"code": "101", "message": "bar\nbaz"}}'
+            );
+            const response = laxConnection.fetchJson('');
+            await expect(response).to.eventually.be.rejectedWith('bar\nbaz');
+        });
+    });
 });
