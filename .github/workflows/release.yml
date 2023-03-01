@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 
@@ -40,17 +40,21 @@ jobs:
         run: npm run test-ci
 
       - name: Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
 
       - name: Build
         run: npm run build
 
-      - name: Install semantic-release extra plugins
-        run: npm install --no-save @semantic-release/changelog@^6 @semantic-release/git@^10 semantic-release-license@^1
-
-      - name: Release
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: 0
-        run: npx semantic-release@^19
+        id: semantic
+        with:
+          semantic_version: 19.0.5
+          extra_plugins: |
+            @semantic-release/changelog@6.0
+            @semantic-release/git@10.0
+            semantic-release-license@^1
