@@ -1,8 +1,8 @@
 import {URLSearchParams} from 'url';
 import {fromBuffer as fileTypeFromBuffer} from 'file-type';
-import {FetchError} from './Connection';
-import type {Blob, FetchParams, ServiceDocument} from './Connection';
-import type Database from './Database';
+import {FetchError} from './Connection.js';
+import type {Blob, FetchParams, ServiceDocument} from './Connection.js';
+import type Database from './Database.js';
 
 export type FieldValue = string | number | Buffer | null;
 export type Repetition = {

@@ -13,7 +13,7 @@ import type {Headers, Request, Response} from 'node-fetch';
 import fetch from 'node-fetch';
 import type {SinonSandbox} from 'sinon';
 import sinon from 'sinon';
-import {ClarisId} from '../src';
+import {ClarisId} from '../src/index.js';
 
 use(chaiAsPromised);
 

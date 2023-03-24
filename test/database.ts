@@ -3,8 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import type {SinonStubbedInstance} from 'sinon';
 import sinon from 'sinon';
-import type {Blob, FetchParams} from '../src';
-import {Connection, Database} from '../src';
+import type {Blob, FetchParams} from '../src/index.js';
+import {Connection, Database} from '../src/index.js';
 
 use(chaiAsPromised);
 

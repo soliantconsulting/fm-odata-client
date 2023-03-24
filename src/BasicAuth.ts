@@ -1,4 +1,4 @@
-import type {Authentication} from './Connection';
+import type {Authentication} from './Connection.js';
 
 class BasicAuth implements Authentication {
     private readonly authorizationHeader : Promise<string>;

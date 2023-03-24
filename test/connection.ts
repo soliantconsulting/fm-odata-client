@@ -3,8 +3,8 @@ import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import nock, {cleanAll, enableNetConnect} from 'nock';
-import type {Authentication} from '../src';
-import {Connection} from '../src';
+import type {Authentication} from '../src/index.js';
+import {Connection} from '../src/index.js';
 
 use(chaiAsPromised);
 

@@ -1,7 +1,7 @@
-import type {Blob, FetchParams, ServiceDocument} from './Connection';
-import type Connection from './Connection';
-import SchemaManager from './SchemaManager';
-import Table from './Table';
+import type {Blob, FetchParams, ServiceDocument} from './Connection.js';
+import type Connection from './Connection.js';
+import SchemaManager from './SchemaManager.js';
+import Table from './Table.js';
 
 export type TableListEntry = {
     name : string;

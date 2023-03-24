@@ -1,6 +1,6 @@
 import type {SinonMatcher} from 'sinon';
 import sinon from 'sinon';
-import type {FetchParams} from '../src';
+import type {FetchParams} from '../src/index.js';
 
 export const matchFetchParams = (expected : FetchParams) : SinonMatcher => sinon.match((actual : FetchParams) => {
     if (expected.method !== actual.method) {

@@ -1,4 +1,4 @@
-import type Database from './Database';
+import type Database from './Database.js';
 
 type GenericField = {
     name : string;

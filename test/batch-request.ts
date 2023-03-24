@@ -2,7 +2,7 @@ import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import {Headers, Request} from 'node-fetch';
-import BatchRequest from '../src/BatchRequest';
+import BatchRequest from '../src/BatchRequest.js';
 
 use(chaiAsPromised);
 

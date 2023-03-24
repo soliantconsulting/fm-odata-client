@@ -6,8 +6,8 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import type {SinonStubbedInstance} from 'sinon';
 import sinon from 'sinon';
-import {Database, FetchError, Table} from '../src';
-import {matchFetchParams} from './test-utils';
+import {Database, FetchError, Table} from '../src/index.js';
+import {matchFetchParams} from './test-utils.js';
 
 use(chaiAsPromised);
 

@@ -1,6 +1,6 @@
 import type {AuthenticationDetails, CognitoUser, CognitoUserPool, CognitoUserSession} from 'amazon-cognito-identity-js';
 import fetch, {Headers, Request, Response} from 'node-fetch';
-import type {Authentication} from './Connection';
+import type {Authentication} from './Connection.js';
 
 class ClarisId implements Authentication {
     private readonly username : string;

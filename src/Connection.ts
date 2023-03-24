@@ -2,8 +2,8 @@ import {Agent} from 'https';
 import type {URLSearchParams} from 'url';
 import type {BodyInit, Response} from 'node-fetch';
 import fetch, {Headers, Request} from 'node-fetch';
-import BatchRequest from './BatchRequest';
-import Database from './Database';
+import BatchRequest from './BatchRequest.js';
+import Database from './Database.js';
 
 export type Authentication = {
     getAuthorizationHeader : () => Promise<string>;
