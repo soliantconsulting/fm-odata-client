@@ -42,8 +42,9 @@ This will give you a connection instance which allows you to issue queries again
 ### Note about FileMaker related OData issues
 
 At the time of writing, the FileMaker OData API suffers an issue where it incorrectly includes unescaped newline
-characters in JSON responses. If you are using a version affected by this issue, you can set the third parameter of the
-`Connection` constructor to `true` to enable lax parsing which will work around this issue.
+characters in JSON responses. If you are using a version affected by this issue, you can pass an options object as the 
+third parameter of the `Connection` constructor with `laxParsing` set to `true` to enable lax parsing which will work
+around this issue.
 
 ### Listing all databases
 

@@ -55,14 +55,26 @@ type Batch = {
     operations : BatchOperation[];
 };
 
+export type ConnectionOptions = {
+    laxParsing ?: boolean;
+    disableSsl ?: boolean;
+};
+
 class Connection {
     private batch : Batch | null = null;
+    private readonly options : ConnectionOptions;
 
     public constructor(
         private readonly hostname : string,
         private readonly authentication : Authentication,
-        private readonly laxParsing = false,
+        options : ConnectionOptions | boolean = {},
     ) {
+        if (typeof options === 'boolean') {
+            console.info('Passing laxParsing directly is deprecated, use options object instead.');
+            options = {laxParsing: options};
+        }
+
+        this.options = options;
     }
 
     public async listDatabases() : Promise<DatabaseListEntry[]> {
@@ -104,7 +116,7 @@ class Connection {
         }
 
         const batchRequest = new BatchRequest(
-            `https://${this.hostname}/fmi/odata/v4/${this.batch.databaseName}`,
+            `${this.options.disableSsl ? 'http' : 'https'}://${this.hostname}/fmi/odata/v4/${this.batch.databaseName}`,
             await this.authentication.getAuthorizationHeader(),
             await Promise.all(this.batch.operations.map(
                 async operation => this.createRequest(operation.path, operation.params)
@@ -200,7 +212,7 @@ class Connection {
 
     private async createRequest(path : string, params : FetchParams | Promise<FetchParams>) : Promise<Request> {
         params = await params;
-        let url = `https://${this.hostname}/fmi/odata/v4${path}`;
+        let url = `${this.options.disableSsl ? 'http' : 'https'}://${this.hostname}/fmi/odata/v4${path}`;
 
         if (params.search) {
             url += `?${Connection.stringifySearch(params.search)}`;
@@ -230,7 +242,7 @@ class Connection {
     }
 
     private async parseResponseJson<T = unknown>(response : Response) : Promise<T> {
-        if (!this.laxParsing) {
+        if (!this.options.laxParsing) {
             return await response.json() as T;
         }
 
