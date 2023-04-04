@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v2.0.0...v2.1.0) (2023-04-04)
+
+
+### Features
+
+* allow disabling SSL for connections ([fd396cb](https://github.com/soliantconsulting/fm-odata-client/commit/fd396cbeb6515ea3a8897b4d2d321bf59dae5c9a))
+
 # [2.0.0](https://github.com/soliantconsulting/fm-odata-client/compare/v1.1.0...v2.0.0) (2023-04-04)
 
 
