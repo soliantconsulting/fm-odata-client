@@ -1,10 +1,10 @@
 import {defineConfig} from 'tsup';
 
 export default defineConfig({
-    entry: ['src/index.ts'],
+    entry: ['src/index.ts', 'src/ClarisId.ts'],
     splitting: false,
     sourcemap: true,
     clean: true,
-    format: ['cjs', 'esm'],
+    format: ['esm', 'cjs'],
     dts: true,
 });

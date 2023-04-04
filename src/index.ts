@@ -4,7 +4,6 @@ export * from './SchemaManager.js';
 export * from './Table.js';
 
 export {default as BasicAuth} from './BasicAuth.js';
-export {default as ClarisId} from './ClarisId.js';
 export {default as Connection} from './Connection.js';
 export {default as Database} from './Database.js';
 export {default as SchemaManager} from './SchemaManager.js';

@@ -1,6 +1,6 @@
 {
     "extends": "eslint-config-dasprid",
     "parserOptions": {
-        "project": "tsconfig.eslint.json"
+        "project": "tsconfig.json"
     }
 }

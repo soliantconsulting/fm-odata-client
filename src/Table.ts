@@ -1,5 +1,4 @@
 import {URLSearchParams} from 'url';
-import {fromBuffer as fileTypeFromBuffer} from 'file-type';
 import {FetchError} from './Connection.js';
 import type {Blob, FetchParams, ServiceDocument} from './Connection.js';
 import type Database from './Database.js';
@@ -282,6 +281,9 @@ class Table<Batched extends boolean = false> {
     }
 
     private static async getMimeType(data : Buffer) : Promise<string> {
+        // Asynchronous import for CommonJS support
+        // @todo move to top level import when going ESM only
+        const {fileTypeFromBuffer} = await import('file-type');
         const fileType = await fileTypeFromBuffer(data);
 
         if (!fileType || !allowedFileTypes.includes(fileType.mime)) {

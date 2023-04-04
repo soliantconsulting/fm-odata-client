@@ -1,5 +1,6 @@
 import * as Crypto from 'crypto';
-import {Headers, Request, Response} from 'node-fetch';
+import type {ReadableStream} from 'stream/web';
+import {Headers, Request, Response} from 'undici';
 
 /**
  * @internal
@@ -18,7 +19,7 @@ class BatchRequest {
         }
     }
 
-    public toRequest() : Request {
+    public async toRequest() : Promise<Request> {
         const boundary = `batch_${Crypto.randomBytes(16).toString('hex')}`;
         const headers = new Headers({
             Authorization: this.authorizationHeader,
@@ -26,7 +27,7 @@ class BatchRequest {
             'Content-Type': `multipart/mixed; boundary=${boundary}`,
         });
 
-        const body = this.operations.map(request => {
+        const body = (await Promise.all(this.operations.map(async request => {
             if (Array.isArray(request)) {
                 const changesetBoundary = `changeset_${Crypto.randomBytes(16).toString('hex')}`;
 
@@ -34,13 +35,17 @@ class BatchRequest {
                     `--${boundary}`,
                     `Content-Type: multipart/mixed; boundary=${changesetBoundary}`,
                     '',
-                    ...request.map(request => `--${changesetBoundary}\r\n${BatchRequest.formatRequest(request)}`),
+                    ...await Promise.all(
+                        request.map(
+                            async request => `--${changesetBoundary}\r\n${await BatchRequest.formatRequest(request)}`
+                        )
+                    ),
                     `--${changesetBoundary}--`,
                 ].join('\r\n');
             }
 
-            return `--${boundary}\r\n${BatchRequest.formatRequest(request)}`;
-        }).join('\r\n');
+            return `--${boundary}\r\n${await BatchRequest.formatRequest(request)}`;
+        }))).join('\r\n');
 
         return new Request(`${this.serviceEndpoint}/$batch`, {
             method: 'POST',
@@ -139,7 +144,7 @@ class BatchRequest {
         return boundary;
     }
 
-    private static formatRequest(request : Request) : string {
+    private static async formatRequest(request : Request) : Promise<string> {
         return [
             'Content-Type: application/http',
             'Content-Transfer-Encoding: binary',
@@ -147,8 +152,18 @@ class BatchRequest {
             `${request.method} ${request.url} HTTP/1.1`,
             ...BatchRequest.formatRequestHeaders(request.headers),
             '',
-            request.body,
+            request.body ? await BatchRequest.streamToString(request.body) : '',
         ].join('\r\n');
+    }
+
+    private static async streamToString(stream : ReadableStream) : Promise<string> {
+        const chunks = [];
+
+        for await (const chunk of stream) {
+            chunks.push(Buffer.from(chunk as string));
+        }
+
+        return Buffer.concat(chunks).toString('utf-8');
     }
 
     private static formatRequestHeaders(headers : Headers) : string[] {
