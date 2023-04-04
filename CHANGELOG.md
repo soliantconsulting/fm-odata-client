@@ -1,3 +1,18 @@
+# [2.0.0](https://github.com/soliantconsulting/fm-odata-client/compare/v1.1.0...v2.0.0) (2023-04-04)
+
+
+### Features
+
+* add ESM support and split claris-id export ([dc4a5ae](https://github.com/soliantconsulting/fm-odata-client/commit/dc4a5aeaebbc09e55cccadfd2f5f9bfa42963000))
+* generate ESM format in addition to CJS ([f020a48](https://github.com/soliantconsulting/fm-odata-client/commit/f020a48561ffd4312fc3ba782cf9d3a3db3385ce))
+
+
+### BREAKING CHANGES
+
+* claris-id is not split into s a separate export to avoid
+packaging issues with external tools. The NodeJS version was also raised to 18+
+in order to prepare for native fetch support once typings become available.
+
 # [1.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v1.0.5...v1.1.0) (2022-07-11)
 
 
