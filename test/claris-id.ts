@@ -8,12 +8,11 @@ import {
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import nock, {cleanAll, enableNetConnect} from 'nock';
-import type {Headers, Request, Response} from 'node-fetch';
-import fetch from 'node-fetch';
 import type {SinonSandbox} from 'sinon';
 import sinon from 'sinon';
-import {ClarisId} from '../src';
+import type {Headers, Request, Response, MockPool} from 'undici';
+import {fetch, MockAgent, setGlobalDispatcher} from 'undici';
+import ClarisId from '../src/ClarisId.js';
 
 use(chaiAsPromised);
 
@@ -58,21 +57,26 @@ const expiredSession = new CognitoUserSession({
 
 describe('ClarisId', () => {
     let sandbox : SinonSandbox;
+    let mockAgent : MockAgent;
+    let mockPool : MockPool;
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
+        mockAgent = new MockAgent();
+        mockAgent.disableNetConnect();
+        mockPool = mockAgent.get('https://www.ifmcloud.com');
+        setGlobalDispatcher(mockAgent);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         sandbox.restore();
-        cleanAll();
-        enableNetConnect();
+        await mockAgent.close();
     });
 
     describe('getAuthorizationHeader', () => {
         beforeEach(() => {
-            nock('https://www.ifmcloud.com')
-                .get('/endpoint/userpool/2.2.0.my.claris.com.json')
+            mockPool
+                .intercept({path: '/endpoint/userpool/2.2.0.my.claris.com.json'})
                 .reply(200, validUserPoolConfig)
                 .persist();
         });
@@ -161,8 +165,8 @@ describe('ClarisId', () => {
 
     describe('getUserPool', () => {
         it('should throw error when fetching config fails', async () => {
-            nock('https://www.ifmcloud.com')
-                .get('/endpoint/userpool/2.2.0.my.claris.com.json')
+            mockPool
+                .intercept({path: '/endpoint/userpool/2.2.0.my.claris.com.json'})
                 .reply(400);
 
             const clarisId = new ClarisId('foo', 'bar');
@@ -172,9 +176,8 @@ describe('ClarisId', () => {
         });
 
         it('should only load once', async () => {
-            nock('https://www.ifmcloud.com')
-                .get('/endpoint/userpool/2.2.0.my.claris.com.json')
-                .once()
+            mockPool
+                .intercept({path: '/endpoint/userpool/2.2.0.my.claris.com.json'})
                 .reply(200, validUserPoolConfig);
             sandbox.stub(CognitoUser.prototype, 'authenticateUser').yieldsTo('onSuccess', validSession);
 

@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import type {SinonStubbedInstance} from 'sinon';
 import sinon from 'sinon';
-import {Database, SchemaManager} from '../src';
+import {Database, SchemaManager} from '../src/index.js';
 
 use(chaiAsPromised);
 

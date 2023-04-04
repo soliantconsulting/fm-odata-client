@@ -1,15 +1,17 @@
 import {promises as fs} from 'fs';
 import * as path from 'path';
-import {URLSearchParams} from 'url';
+import {fileURLToPath, URLSearchParams} from 'url';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import type {SinonStubbedInstance} from 'sinon';
 import sinon from 'sinon';
-import {Database, FetchError, Table} from '../src';
-import {matchFetchParams} from './test-utils';
+import {Database, FetchError, Table} from '../src/index.js';
+import {matchFetchParams} from './test-utils.js';
 
 use(chaiAsPromised);
+
+const fixtureDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixture');
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -138,7 +140,7 @@ describe('Table', () => {
 
         it('should accept GIF', async () => {
             databaseStub.fetchNone.returns(Promise.resolve());
-            const data = await fs.readFile(path.join(__dirname, 'fixture/binary.gif'));
+            const data = await fs.readFile(path.join(fixtureDir, 'binary.gif'));
             await table.uploadBinary('foo', 'bar', data);
             await expect(databaseStub.fetchNone.getCall(0).args[1]).to.eventually.be.eql({
                 method: 'PATCH',
@@ -149,7 +151,7 @@ describe('Table', () => {
 
         it('should accept PNG', async () => {
             databaseStub.fetchNone.returns(Promise.resolve());
-            const data = await fs.readFile(path.join(__dirname, 'fixture/binary.png'));
+            const data = await fs.readFile(path.join(fixtureDir, 'binary.png'));
             await table.uploadBinary('foo', 'bar', data);
             await expect(databaseStub.fetchNone.getCall(0).args[1]).to.eventually.be.eql({
                 method: 'PATCH',
@@ -160,7 +162,7 @@ describe('Table', () => {
 
         it('should accept JPEG', async () => {
             databaseStub.fetchNone.returns(Promise.resolve());
-            const data = await fs.readFile(path.join(__dirname, 'fixture/binary.jpg'));
+            const data = await fs.readFile(path.join(fixtureDir, 'binary.jpg'));
             await table.uploadBinary('foo', 'bar', data);
             await expect(databaseStub.fetchNone.getCall(0).args[1]).to.eventually.be.eql({
                 method: 'PATCH',
@@ -171,7 +173,7 @@ describe('Table', () => {
 
         it('should accept TIFF', async () => {
             databaseStub.fetchNone.returns(Promise.resolve());
-            const data = await fs.readFile(path.join(__dirname, 'fixture/binary.tif'));
+            const data = await fs.readFile(path.join(fixtureDir, 'binary.tif'));
             await table.uploadBinary('foo', 'bar', data);
             await expect(databaseStub.fetchNone.getCall(0).args[1]).to.eventually.be.eql({
                 method: 'PATCH',
@@ -182,7 +184,7 @@ describe('Table', () => {
 
         it('should accept PDF', async () => {
             databaseStub.fetchNone.returns(Promise.resolve());
-            const data = await fs.readFile(path.join(__dirname, 'fixture/binary.pdf'));
+            const data = await fs.readFile(path.join(fixtureDir, 'binary.pdf'));
             await table.uploadBinary('foo', 'bar', data);
             await expect(databaseStub.fetchNone.getCall(0).args[1]).to.eventually.be.eql({
                 method: 'PATCH',

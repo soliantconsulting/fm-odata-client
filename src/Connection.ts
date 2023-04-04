@@ -1,9 +1,8 @@
-import {Agent} from 'https';
 import type {URLSearchParams} from 'url';
-import type {BodyInit, Response} from 'node-fetch';
-import fetch, {Headers, Request} from 'node-fetch';
-import BatchRequest from './BatchRequest';
-import Database from './Database';
+import type {BodyInit, Response} from 'undici';
+import {fetch, Headers, Request} from 'undici';
+import BatchRequest from './BatchRequest.js';
+import Database from './Database.js';
 
 export type Authentication = {
     getAuthorizationHeader : () => Promise<string>;
@@ -57,7 +56,6 @@ type Batch = {
 };
 
 class Connection {
-    private static readonly agent = new Agent({keepAlive: true});
     private batch : Batch | null = null;
 
     public constructor(
@@ -113,7 +111,7 @@ class Connection {
             )),
         );
 
-        const response = await fetch(batchRequest.toRequest());
+        const response = await fetch(await batchRequest.toRequest());
 
         if (!response.ok) {
             throw new Error('Batch request failed');
@@ -158,7 +156,8 @@ class Connection {
     public async fetchBlob(path : string, params : FetchParams | Promise<FetchParams> = {}) : Promise<Blob> {
         const response = await this.fetch(path, params);
         const contentType = response.headers.get('Content-Type');
-        const buffer = await response.buffer();
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
         return {buffer, type: contentType ?? 'application/octet-stream'};
     }
@@ -189,7 +188,7 @@ class Connection {
                 }>(response);
                 errorCode = data.error.code;
                 errorMessage = data.error.message;
-            } catch (e) {
+            } catch {
                 // Ignore error.
             }
 
@@ -223,7 +222,7 @@ class Connection {
         }
 
         return new Request(url, {
-            agent: Connection.agent,
+            keepalive: true,
             method: params.method,
             body: params.body,
             headers,

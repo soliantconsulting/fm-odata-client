@@ -1,6 +1,7 @@
-import type {AuthenticationDetails, CognitoUser, CognitoUserPool, CognitoUserSession} from 'amazon-cognito-identity-js';
-import fetch, {Headers, Request, Response} from 'node-fetch';
-import type {Authentication} from './Connection';
+import type {CognitoUserSession} from 'amazon-cognito-identity-js';
+import {AuthenticationDetails, CognitoUser, CognitoUserPool} from 'amazon-cognito-identity-js';
+import {fetch, Headers, Request, Response} from 'undici';
+import type {Authentication} from './Connection.js';
 
 class ClarisId implements Authentication {
     private readonly username : string;
@@ -30,11 +31,8 @@ class ClarisId implements Authentication {
         return `FMID ${idToken}`;
     }
 
-    private async getAuthenticationDetails() : Promise<AuthenticationDetails> {
+    private getAuthenticationDetails() : AuthenticationDetails {
         if (!this.authenticationDetails) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            const {AuthenticationDetails} = await import('amazon-cognito-identity-js');
-
             this.authenticationDetails = new AuthenticationDetails({
                 Username: this.username,
                 Password: this.password,
@@ -84,7 +82,7 @@ class ClarisId implements Authentication {
 
     private async retrieveNewSession() : Promise<CognitoUserSession> {
         const cognitoUser = await this.getCognitoUser();
-        const authenticationDetails = await this.getAuthenticationDetails();
+        const authenticationDetails = this.getAuthenticationDetails();
         return this.userSession = await new Promise<CognitoUserSession>(
             (resolve, reject) => {
                 cognitoUser.authenticateUser(authenticationDetails, {
@@ -104,11 +102,8 @@ class ClarisId implements Authentication {
             return this.cognitoUser;
         }
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        const {CognitoUser} = await import('amazon-cognito-identity-js');
-
         return this.cognitoUser = new CognitoUser({
-            Username: (await this.getAuthenticationDetails()).getUsername(),
+            Username: this.getAuthenticationDetails().getUsername(),
             Pool: await this.getUserPool(),
         });
     }
@@ -132,9 +127,6 @@ class ClarisId implements Authentication {
                 /* eslint-enable @typescript-eslint/naming-convention */
             };
         };
-
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        const {CognitoUserPool} = await import('amazon-cognito-identity-js');
 
         return this.userPool = new CognitoUserPool({
             UserPoolId: config.data.UserPool_ID,

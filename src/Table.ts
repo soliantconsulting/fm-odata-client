@@ -1,8 +1,7 @@
 import {URLSearchParams} from 'url';
-import {fromBuffer as fileTypeFromBuffer} from 'file-type';
-import {FetchError} from './Connection';
-import type {Blob, FetchParams, ServiceDocument} from './Connection';
-import type Database from './Database';
+import {FetchError} from './Connection.js';
+import type {Blob, FetchParams, ServiceDocument} from './Connection.js';
+import type Database from './Database.js';
 
 export type FieldValue = string | number | Buffer | null;
 export type RepetitionFieldValue = string[] | number[] | Buffer[] | null[];
@@ -299,6 +298,9 @@ class Table<Batched extends boolean = false> {
     }
 
     private static async getMimeType(data : Buffer) : Promise<string> {
+        // Asynchronous import for CommonJS support
+        // @todo move to top level import when going ESM only
+        const {fileTypeFromBuffer} = await import('file-type');
         const fileType = await fileTypeFromBuffer(data);
 
         if (!fileType || !allowedFileTypes.includes(fileType.mime)) {

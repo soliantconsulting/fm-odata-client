@@ -31,7 +31,8 @@ options:
   
 - FileMaker Cloud
     ```typescript
-    import {ClarisId, Connection} from 'fm-odata-client';
+    import {Connection} from 'fm-odata-client';
+    import ClarisId from 'fm-odata-client/claris-id';
   
     const connection = new Connection('example.com', new ClarisId('username', 'password'));
     ````  

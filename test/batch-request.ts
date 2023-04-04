@@ -1,15 +1,15 @@
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import {Headers, Request} from 'node-fetch';
-import BatchRequest from '../src/BatchRequest';
+import {Headers, Request} from 'undici';
+import BatchRequest from '../src/BatchRequest.js';
 
 use(chaiAsPromised);
 
 describe('BatchRequest', () => {
     describe('toRequest', () => {
-        it('should include include basic headers', () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+        it('should include include basic headers', async () => {
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo'),
             ]).toRequest();
             expect(request.method).to.equal('POST');
@@ -19,7 +19,7 @@ describe('BatchRequest', () => {
         });
 
         it('should include start and end boundary', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo'),
             ]).toRequest();
             /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -40,7 +40,7 @@ describe('BatchRequest', () => {
         });
 
         it('should add headers from sub request', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo', {headers: {'Content-Type': 'text/plain'}}),
             ]).toRequest();
 
@@ -53,7 +53,7 @@ describe('BatchRequest', () => {
         });
 
         it('should exclude authorization header from sub request', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo', {headers: {'Authorization': 'foobar'}}),
             ]).toRequest();
 
@@ -65,7 +65,7 @@ describe('BatchRequest', () => {
         });
 
         it('should include supplied body', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo', {
                     method: 'POST',
                     body: '{}',
@@ -83,7 +83,7 @@ describe('BatchRequest', () => {
         });
 
         it('should place update operations in a changeset', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo', {method: 'POST'}),
             ]).toRequest();
 
@@ -116,7 +116,7 @@ describe('BatchRequest', () => {
         });
 
         it('should split changesets', async () => {
-            const request = new BatchRequest('http://localhost', 'foo', [
+            const request = await new BatchRequest('http://localhost', 'foo', [
                 new Request('http://localhost/foo1', {method: 'POST'}),
                 new Request('http://localhost/foo2', {method: 'POST'}),
                 new Request('http://localhost/foo3', {method: 'GET'}),
