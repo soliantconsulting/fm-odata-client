@@ -326,7 +326,7 @@ describe('Connection', () => {
             await expect(response).to.eventually.be.rejectedWith('An unknown error occurred');
         });
 
-        const laxConnection = new Connection('localhost', auth, true);
+        const laxConnection = new Connection('localhost', auth, {laxParsing: true});
 
         it('should succeed with non encoded newlines with lax parsing in JSON response', async () => {
             mockPool.intercept({path: '/fmi/odata/v4'}).reply(200, '{"foo": "bar\nbaz"}');
