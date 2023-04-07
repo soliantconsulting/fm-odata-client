@@ -250,8 +250,9 @@ class Connection {
         const cleanedJson = json.replace(/"(?:(?=(\\?))\1.)*?"/gs, substring => {
             return substring.replace(/(?<!\\)((?:\\\\)*)\n/g, '$1\\n');
         });
+        const tabCleanedJson = cleanedJson.replace(/\t/g, '\\t');
 
-        return await JSON.parse(cleanedJson) as T;
+        return await JSON.parse(tabCleanedJson) as T;
     }
 
     private static stringifySearch(search : URLSearchParams) : string {

@@ -4,6 +4,7 @@ import type {Blob, FetchParams, ServiceDocument} from './Connection.js';
 import type Database from './Database.js';
 
 export type FieldValue = string | number | Buffer | null;
+export type RepetitionFieldValue = string[] | number[] | Buffer[] | null[];
 export type Repetition = {
     repetition : number;
     value : FieldValue;
@@ -170,6 +171,22 @@ class Table<Batched extends boolean = false> {
 
             throw e;
         }
+    }
+
+    public async fetchFieldValue(id : PrimaryKey, fieldName : string) : Promise<FieldValue | RepetitionFieldValue> {
+        const path = `(${Table.compilePrimaryKey(id)})/${fieldName}`;
+        const response = await this.fetchJson<ServiceDocument<FieldValue | RepetitionFieldValue>>(path);
+
+        return response.value;
+    }
+
+    public async fetchBinaryFieldValue(id : PrimaryKey, fieldName : string, repetition ?: number) : Promise<Blob> {
+        let path : string;
+        if (repetition === undefined)
+            path = `(${Table.compilePrimaryKey(id)})/${fieldName}/$value`;
+        else
+            path = `(${Table.compilePrimaryKey(id)})/${fieldName}[${repetition}]/$value`;
+        return await this.fetchBlob(path);
     }
 
     public async fetchField(id : PrimaryKey, fieldName : string) : Promise<Blob> {

@@ -261,6 +261,39 @@ describe('Table', () => {
         });
     });
 
+    describe('fetchFieldValue', () => {
+        it('should return the result', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({}));
+            await table.fetchFieldValue('bar', 'baz');
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+    });
+
+    describe('fetchBinaryFieldValue', () => {
+        it('should return the result', async () => {
+            databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
+            const result = table.fetchBinaryFieldValue('bar', 'baz');
+            await expect(result).to.eventually.eql({type: 'text/plain', buffer: Buffer.from('foo')});
+            sinon.assert.calledWith(
+                databaseStub.fetchBlob,
+                "/foo('bar')/baz/$value",
+            );
+        });
+
+        it('should return the result', async () => {
+            databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
+            const result = table.fetchBinaryFieldValue('bar', 'baz', 1);
+            await expect(result).to.eventually.eql({type: 'text/plain', buffer: Buffer.from('foo')});
+            sinon.assert.calledWith(
+                databaseStub.fetchBlob,
+                "/foo('bar')/baz[1]/$value",
+            );
+        });
+    });
+
     describe('fetchField', () => {
         it('should return the result', async () => {
             databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
