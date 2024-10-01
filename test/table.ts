@@ -273,11 +273,43 @@ describe('Table', () => {
             );
         });
 
-        it('should return the result for a repeating field', async () => {
+        it('should return all repetitions for a repeating field', async () => {
             const expectedValue = ['value1', 'value2', 'value3'];
             databaseStub.fetchJson.returns(Promise.resolve({value: expectedValue}));
             const result = await table.fetchFieldValue('bar', 'baz');
             expect(result).to.deep.equal(expectedValue);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return a specific repetition when requested', async () => {
+            const allRepetitions = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: allRepetitions}));
+            const result = await table.fetchFieldValue('bar', 'baz', 1);
+            expect(result).to.equal('value2');
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return null for a non-existent repetition', async () => {
+            const allRepetitions = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: allRepetitions}));
+            const result = await table.fetchFieldValue('bar', 'baz', 5);
+            expect(result).to.be.null;
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return null for an empty repeating field when requesting a specific repetition', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            const result = await table.fetchFieldValue('bar', 'baz', 0);
+            expect(result).to.be.null;
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 "/foo('bar')/baz",

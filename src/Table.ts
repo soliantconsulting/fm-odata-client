@@ -173,11 +173,24 @@ class Table<Batched extends boolean = false> {
         }
     }
 
-    public async fetchFieldValue(id : PrimaryKey, fieldName : string) : Promise<FieldValue | RepetitionFieldValue> {
-        const path = `(${Table.compilePrimaryKey(id)})/${fieldName}`;
-        const response = await this.fetchJson<ServiceDocument<FieldValue | RepetitionFieldValue>>(path);
+    public async fetchFieldValue(
+        id : PrimaryKey,
+        fieldName : string,
+        repetition ?: number
+    ) : Promise<FieldValue | RepetitionFieldValue | null> {
+        const basePath = `(${Table.compilePrimaryKey(id)})/${fieldName}`;
 
-        return response.value;
+        if (repetition !== undefined) {
+            // For specific repetition, fetch all and return the specific one
+            const allRepetitions = await this.fetchJson<ServiceDocument<RepetitionFieldValue>>(basePath);
+            const repetitionArray = allRepetitions.value;
+            return Array.isArray(repetitionArray) && repetitionArray.length > repetition
+                ? repetitionArray[repetition]
+                : null;
+        } else {
+            const response = await this.fetchJson<ServiceDocument<FieldValue | RepetitionFieldValue>>(basePath);
+            return response.value;
+        }
     }
 
     public async fetchBinaryFieldValue(id : PrimaryKey, fieldName : string, repetition ?: number) : Promise<Blob> {
