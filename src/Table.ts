@@ -182,10 +182,13 @@ class Table<Batched extends boolean = false> {
 
     public async fetchBinaryFieldValue(id : PrimaryKey, fieldName : string, repetition ?: number) : Promise<Blob> {
         let path : string;
-        if (repetition === undefined)
+
+        if (repetition === undefined) {
             path = `(${Table.compilePrimaryKey(id)})/${fieldName}/$value`;
-        else
+        } else {
             path = `(${Table.compilePrimaryKey(id)})/${fieldName}[${repetition}]/$value`;
+        }
+
         return await this.fetchBlob(path);
     }
 

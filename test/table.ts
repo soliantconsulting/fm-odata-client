@@ -262,9 +262,22 @@ describe('Table', () => {
     });
 
     describe('fetchFieldValue', () => {
-        it('should return the result', async () => {
-            databaseStub.fetchJson.returns(Promise.resolve({}));
-            await table.fetchFieldValue('bar', 'baz');
+        it('should return the result for a non-repeating field', async () => {
+            const expectedValue = 'test value';
+            databaseStub.fetchJson.returns(Promise.resolve({value: expectedValue}));
+            const result = await table.fetchFieldValue('bar', 'baz');
+            expect(result).to.equal(expectedValue);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return the result for a repeating field', async () => {
+            const expectedValue = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: expectedValue}));
+            const result = await table.fetchFieldValue('bar', 'baz');
+            expect(result).to.deep.equal(expectedValue);
             sinon.assert.calledWith(
                 databaseStub.fetchJson,
                 "/foo('bar')/baz",
@@ -273,20 +286,20 @@ describe('Table', () => {
     });
 
     describe('fetchBinaryFieldValue', () => {
-        it('should return the result', async () => {
+        it('should return the result for a non-repeating field', async () => {
             databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
-            const result = table.fetchBinaryFieldValue('bar', 'baz');
-            await expect(result).to.eventually.eql({type: 'text/plain', buffer: Buffer.from('foo')});
+            const result = await table.fetchBinaryFieldValue('bar', 'baz');
+            expect(result).to.deep.equal({type: 'text/plain', buffer: Buffer.from('foo')});
             sinon.assert.calledWith(
                 databaseStub.fetchBlob,
                 "/foo('bar')/baz/$value",
             );
         });
 
-        it('should return the result', async () => {
+        it('should return the result for a specific repetition of a repeating field', async () => {
             databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
-            const result = table.fetchBinaryFieldValue('bar', 'baz', 1);
-            await expect(result).to.eventually.eql({type: 'text/plain', buffer: Buffer.from('foo')});
+            const result = await table.fetchBinaryFieldValue('bar', 'baz', 1);
+            expect(result).to.deep.equal({type: 'text/plain', buffer: Buffer.from('foo')});
             sinon.assert.calledWith(
                 databaseStub.fetchBlob,
                 "/foo('bar')/baz[1]/$value",
