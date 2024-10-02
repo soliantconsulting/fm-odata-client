@@ -261,6 +261,84 @@ describe('Table', () => {
         });
     });
 
+    describe('fetchFieldValue', () => {
+        it('should return the result for a non-repeating field', async () => {
+            const expectedValue = 'test value';
+            databaseStub.fetchJson.returns(Promise.resolve({value: expectedValue}));
+            const result = await table.fetchFieldValue('bar', 'baz');
+            expect(result).to.equal(expectedValue);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return all repetitions for a repeating field', async () => {
+            const expectedValue = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: expectedValue}));
+            const result = await table.fetchFieldValue('bar', 'baz');
+            expect(result).to.deep.equal(expectedValue);
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return a specific repetition when requested', async () => {
+            const allRepetitions = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: allRepetitions}));
+            const result = await table.fetchFieldValue('bar', 'baz', 1);
+            expect(result).to.equal('value2');
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return null for a non-existent repetition', async () => {
+            const allRepetitions = ['value1', 'value2', 'value3'];
+            databaseStub.fetchJson.returns(Promise.resolve({value: allRepetitions}));
+            const result = await table.fetchFieldValue('bar', 'baz', 5);
+            expect(result).to.be.null;
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+
+        it('should return null for an empty repeating field when requesting a specific repetition', async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({value: []}));
+            const result = await table.fetchFieldValue('bar', 'baz', 0);
+            expect(result).to.be.null;
+            sinon.assert.calledWith(
+                databaseStub.fetchJson,
+                "/foo('bar')/baz",
+            );
+        });
+    });
+
+    describe('fetchBinaryFieldValue', () => {
+        it('should return the result for a non-repeating field', async () => {
+            databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
+            const result = await table.fetchBinaryFieldValue('bar', 'baz');
+            expect(result).to.deep.equal({type: 'text/plain', buffer: Buffer.from('foo')});
+            sinon.assert.calledWith(
+                databaseStub.fetchBlob,
+                "/foo('bar')/baz/$value",
+            );
+        });
+
+        it('should return the result for a specific repetition of a repeating field', async () => {
+            databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));
+            const result = await table.fetchBinaryFieldValue('bar', 'baz', 1);
+            expect(result).to.deep.equal({type: 'text/plain', buffer: Buffer.from('foo')});
+            sinon.assert.calledWith(
+                databaseStub.fetchBlob,
+                "/foo('bar')/baz[1]/$value",
+            );
+        });
+    });
+
     describe('fetchField', () => {
         it('should return the result', async () => {
             databaseStub.fetchBlob.returns(Promise.resolve({type: 'text/plain', buffer: Buffer.from('foo')}));

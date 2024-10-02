@@ -314,7 +314,9 @@ describe('Connection', () => {
         it('should error with non encoded newlines without lax parsing in JSON response', async () => {
             mockPool.intercept({path: '/fmi/odata/v4'}).reply(200, '{"foo": "bar\nbaz"}');
             const response = connection.fetchJson('');
-            await expect(response).to.eventually.be.rejectedWith('Unexpected token');
+            await expect(response).to.eventually.be.rejectedWith(
+                /Unexpected token|Bad control character in string literal/
+            );
         });
 
         it('should error with non encoded newlines without lax parsing in error response', async () => {

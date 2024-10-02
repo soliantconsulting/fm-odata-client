@@ -190,6 +190,28 @@ console.log('Mime-type: ', photo.type);
 console.log('Buffer: ', photo.buffer);
 ``` 
 
+##### Retrieving repeating fields (experimental)
+For tables with repeating fields, you can retrieve either all repetitions or a specific repetition by specifying
+the repetition number:
+
+```typescript
+const allRepetitions = await userTable.fetchFieldValue(1, 'phoneNumbers');
+console.log('All phone numbers:', allRepetitions);
+
+const secondPhoneNumber = await userTable.fetchFieldValue(1, 'phoneNumbers', 1);
+console.log('Second phone number:', secondPhoneNumber);
+```
+
+For binary repeating fields, you can use the fetchBinaryFieldValue method:
+
+```typescript
+const allPhotos = await userTable.fetchBinaryFieldValue(1, 'photos');
+console.log('All photos:', allPhotos);
+
+const thirdPhoto = await userTable.fetchBinaryFieldValue(1, 'photos', 2);
+console.log('Third photo:', thirdPhoto);
+```
+
 #### Retrieving multiple records
 
 You can retrieve multiple records while specifying [filters](#filters) and other query parameters:
