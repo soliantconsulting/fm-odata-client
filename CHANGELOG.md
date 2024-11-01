@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/soliantconsulting/fm-odata-client/compare/v2.1.0...v3.0.0) (2024-11-01)
+
+
+### Features
+
+* update minimum supported node version to 20 ([24cb93e](https://github.com/soliantconsulting/fm-odata-client/commit/24cb93e35ae85cc92d39766ef036c80528e2acb9))
+
+
+### BREAKING CHANGES
+
+* we are now relying on the native fetch implementation
+
 # [2.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v2.0.0...v2.1.0) (2023-04-04)
 
 
