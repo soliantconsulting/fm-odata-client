@@ -1,0 +1,44 @@
+{
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "organizeImports": {
+        "enabled": true
+    },
+    "files": {
+        "include": ["biome.json", "commitlint.config.cjs", "src/**/*", "test/**/*"]
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "complexity": {
+                "noExcessiveCognitiveComplexity": "warn",
+                "useSimplifiedLogicExpression": "error"
+            },
+            "correctness": {
+                "noNewSymbol": "error",
+                "noUnusedImports": "error",
+                "noUnusedPrivateClassMembers": "error",
+                "useHookAtTopLevel": "error"
+            },
+            "style": {
+                "useBlockStatements": "error",
+                "useCollapsedElseIf": "error",
+                "useForOf": "error",
+                "useFragmentSyntax": "error",
+                "useShorthandArrayType": "error",
+                "useShorthandAssign": "error",
+                "useSingleCaseStatement": "error"
+            },
+            "suspicious": {
+                "noApproximativeNumericConstant": "warn",
+                "noConsoleLog": "error",
+                "noEmptyBlockStatements": "error"
+            }
+        }
+    },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 100
+    }
+}

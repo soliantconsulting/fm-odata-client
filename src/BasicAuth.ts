@@ -1,15 +1,15 @@
-import type {Authentication} from './Connection.js';
+import type { Authentication } from "./Connection.js";
 
 class BasicAuth implements Authentication {
-    private readonly authorizationHeader : Promise<string>;
+    private readonly authorizationHeader: Promise<string>;
 
-    public constructor(username : string, password : string) {
+    public constructor(username: string, password: string) {
         this.authorizationHeader = Promise.resolve(
-            `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`
+            `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
         );
     }
 
-    public async getAuthorizationHeader() : Promise<string> {
+    public async getAuthorizationHeader(): Promise<string> {
         return this.authorizationHeader;
     }
 }

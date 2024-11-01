@@ -11,33 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js 18.x
+      - name: Use pnpm 8.x
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-
-      - name: Cache node modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install
 
-      - name: Lint
-        run: npm run lint
+      - name: Check
+        run: pnpm exec biome ci .
 
       - name: Test
-        run: npm run test-ci
+        run: pnpm test-ci
+
+      - name: Type Check
+        run: pnpm exec tsc --noEmit
 
       - name: Codecov
         uses: codecov/codecov-action@v3

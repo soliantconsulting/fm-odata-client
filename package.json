@@ -23,15 +23,11 @@
     "dist/**/*"
   ],
   "scripts": {
-    "test": "mocha --loader=ts-node/esm --extension=ts test/**/*.ts",
+    "test": "mocha --extension=ts test/**/*.ts",
     "coverage": "nyc npm test",
     "test-ci": "nyc --reporter=lcov npm test",
     "build": "tsc --noEmit && tsup",
-    "lint": "eslint .",
-    "prepare": "husky install"
-  },
-  "lint-staged": {
-    "*.ts": "eslint --cache --fix"
+    "check": "biome check . --write"
   },
   "author": "Soliant Consulting",
   "keywords": [
@@ -43,11 +39,10 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=0.18"
+    "node": ">=0.20"
   },
   "dependencies": {
-    "file-type": "^18.2.1",
-    "undici": "^5.21.0"
+    "file-type": "^19.6.0"
   },
   "peerDependencies": {
     "amazon-cognito-identity-js": "^4.5.12"
@@ -58,26 +53,27 @@
     }
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.0.2",
-    "@commitlint/config-conventional": "^17.0.2",
-    "@tsconfig/node16": "^1.0.3",
-    "@types/chai": "^4.2.15",
-    "@types/chai-as-promised": "^7.1.3",
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^18.15.7",
-    "@types/sinon": "^10.0.11",
-    "amazon-cognito-identity-js": "^6.2.0",
-    "chai": "^4.3.0",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "^8.17.0",
-    "eslint-config-dasprid": "^0.1.12",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.1",
-    "mocha": "^10.0.0",
-    "nyc": "^15.1.0",
-    "sinon": "^15.0.1",
-    "ts-node": "^10.8.1",
-    "tsup": "^6.7.0",
-    "typescript": "^5.0.2"
-  }
+    "@biomejs/biome": "^1.9.4",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/chai": "^5.0.1",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/mocha": "^10.0.9",
+    "@types/node": "^20.17.5",
+    "@types/sinon": "^17.0.3",
+    "amazon-cognito-identity-js": "^6.3.12",
+    "chai": "^5.1.2",
+    "chai-as-promised": "^8.0.0",
+    "fetch-mock": "^12.0.2",
+    "lefthook": "^1.8.2",
+    "mocha": "^10.8.2",
+    "nyc": "^17.1.0",
+    "sinon": "^19.0.2",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"
 }
