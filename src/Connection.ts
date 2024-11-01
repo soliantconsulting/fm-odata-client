@@ -248,10 +248,6 @@ class Connection {
             headers.set("Content-Type", "application/json");
         }
 
-        if (typeof resolvedParams.body === "string" || Buffer.isBuffer(resolvedParams.body)) {
-            headers.set("Content-Length", resolvedParams.body.length.toString());
-        }
-
         return new Request(url, {
             keepalive: true,
             method: resolvedParams.method,
