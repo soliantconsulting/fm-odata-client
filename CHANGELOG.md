@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.0...v3.0.1) (2024-11-01)
+
+
+### Bug Fixes
+
+* **connection:** let fetch automatically infer the content-length header ([a7ce592](https://github.com/soliantconsulting/fm-odata-client/commit/a7ce59202fa0c7095f8c752673524d48bb25fad5))
+
 # [3.0.0](https://github.com/soliantconsulting/fm-odata-client/compare/v2.1.0...v3.0.0) (2024-11-01)
 
 
