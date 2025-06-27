@@ -1,6 +1,7 @@
 import type { URLSearchParams } from "node:url";
 import BatchRequest from "./BatchRequest.js";
 import Database from "./Database.js";
+import OttoAPIKey from "./OttoFMS.js";
 
 export type Authentication = {
     getAuthorizationHeader: () => Promise<string>;
@@ -59,6 +60,7 @@ export type ConnectionOptions = {
 class Connection {
     private batch: Batch | null = null;
     private readonly options: ConnectionOptions;
+    private readonly isOttoConnection: boolean;
 
     public constructor(
         private readonly hostname: string,
@@ -74,12 +76,16 @@ class Connection {
             finalOptions = options;
         }
 
+        this.isOttoConnection = authentication instanceof OttoAPIKey;
         this.options = finalOptions;
     }
 
     public async listDatabases(): Promise<DatabaseListEntry[]> {
         if (this.batch) {
             throw new Error("Databases cannot be listed from a batched connection");
+        }
+        if (this.isOttoConnection) {
+            throw new Error("Databases cannot be listed from an Otto connection");
         }
 
         const response = await this.fetchJson<ServiceDocument<DatabaseListEntry[]>>("");
@@ -116,7 +122,9 @@ class Connection {
         }
 
         const batchRequest = new BatchRequest(
-            `${this.options.disableSsl ? "http" : "https"}://${this.hostname}/fmi/odata/v4/${this.batch.databaseName}`,
+            `${this.options.disableSsl ? "http" : "https"}://${this.hostname}${
+                this.isOttoConnection ? "/otto" : ""
+            }/fmi/odata/v4/${this.batch.databaseName}`,
             await this.authentication.getAuthorizationHeader(),
             await Promise.all(
                 this.batch.operations.map(async (operation) =>
@@ -231,7 +239,9 @@ class Connection {
         params: FetchParams | Promise<FetchParams>,
     ): Promise<Request> {
         const resolvedParams = await params;
-        let url = `${this.options.disableSsl ? "http" : "https"}://${this.hostname}/fmi/odata/v4${path}`;
+        let url = `${this.options.disableSsl ? "http" : "https"}://${
+            this.hostname
+        }${this.isOttoConnection ? "/otto" : ""}/fmi/odata/v4${path}`;
 
         if (resolvedParams.search) {
             url += `?${Connection.stringifySearch(resolvedParams.search)}`;
@@ -270,7 +280,13 @@ class Connection {
     }
 
     private static stringifySearch(search: URLSearchParams): string {
-        const specialTokens = { "%24": "$", "+": "%20", "%2F": "/", "%3D": "=", "%2C": "," };
+        const specialTokens = {
+            "%24": "$",
+            "+": "%20",
+            "%2F": "/",
+            "%3D": "=",
+            "%2C": ",",
+        };
         return search
             .toString()
             .replace(
