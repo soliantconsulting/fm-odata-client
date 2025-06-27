@@ -37,6 +37,13 @@ options:
     const connection = new Connection('example.com', new ClarisId('username', 'password'));
     ````  
 
+- Using OttoFMS Data API Key
+   ```typescript
+    import {OttoAPIKey, Connection} from 'fm-odata-client';
+  
+    const connection = new Connection('example.com', new OttoAPIKey('dk_1234567890'));
+    ````
+
 This will give you a connection instance which allows you to issue queries against the OData API.
 
 ### Note about FileMaker related OData issues
