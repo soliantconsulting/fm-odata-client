@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.1...v3.0.2) (2025-10-23)
+
+
+### Bug Fixes
+
+* add provenance attestation ([d1a840c](https://github.com/soliantconsulting/fm-odata-client/commit/d1a840c826edae7aa74891879b48bf8832343882))
+
 ## [3.0.1](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.0...v3.0.1) (2024-11-01)
 
 
