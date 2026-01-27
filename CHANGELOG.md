@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.2...v3.1.0) (2026-01-27)
+
+
+### Features
+
+* split fetchField into fetchFieldValue and fetchFieldBlob ([fee074e](https://github.com/soliantconsulting/fm-odata-client/commit/fee074e71df19c5ded49a411949812dfec3f7c37))
+
 ## [3.0.2](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.1...v3.0.2) (2025-10-23)
 
 
