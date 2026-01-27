@@ -41,6 +41,9 @@ export type Row = {
     "@odata.id": string;
     "@odata.editLink": string;
 } & Record<string, string | number | null>;
+export type FieldData = {
+    value: string | number | null;
+};
 
 export type QueryResultWithCount = {
     count: number;
@@ -174,8 +177,25 @@ class Table<Batched extends boolean = false> {
         }
     }
 
-    public async fetchField(id: PrimaryKey, fieldName: string): Promise<Blob> {
+    public async fetchFieldValue(
+        id: PrimaryKey,
+        fieldName: string,
+    ): Promise<string | number | null> {
+        const fieldData = await this.fetchJson<FieldData>(
+            `(${Table.compilePrimaryKey(id)})/${fieldName}`,
+        );
+        return fieldData.value;
+    }
+
+    public async fetchFieldBlob(id: PrimaryKey, fieldName: string): Promise<Blob> {
         return this.fetchBlob(`(${Table.compilePrimaryKey(id)})/${fieldName}/$value`);
+    }
+
+    /**
+     * @deprecated Use `fetchFieldBlob` instead.
+     */
+    public async fetchField(id: PrimaryKey, fieldName: string): Promise<Blob> {
+        return this.fetchFieldBlob(id, fieldName);
     }
 
     public async fetchOne(params?: FetchOneParams): Promise<Row | null> {

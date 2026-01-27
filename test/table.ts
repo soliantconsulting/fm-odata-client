@@ -256,12 +256,21 @@ describe("Table", () => {
         });
     });
 
-    describe("fetchField", () => {
+    describe("fetchFieldValue", () => {
+        it("should return the result", async () => {
+            databaseStub.fetchJson.returns(Promise.resolve({ value: "foo" }));
+            const result = table.fetchFieldValue("bar", "baz");
+            await expect(result).to.eventually.eql("foo");
+            sinon.assert.calledWith(databaseStub.fetchJson, "/foo('bar')/baz");
+        });
+    });
+
+    describe("fetchFieldBlob", () => {
         it("should return the result", async () => {
             databaseStub.fetchBlob.returns(
                 Promise.resolve({ type: "text/plain", buffer: Buffer.from("foo") }),
             );
-            const result = table.fetchField("bar", "baz");
+            const result = table.fetchFieldBlob("bar", "baz");
             await expect(result).to.eventually.eql({
                 type: "text/plain",
                 buffer: Buffer.from("foo"),
