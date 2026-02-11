@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/soliantconsulting/fm-odata-client/compare/v3.1.0...v3.2.0) (2026-02-11)
+
+
+### Features
+
+* allow setting dispatcher for all fetch requests ([eb8af0a](https://github.com/soliantconsulting/fm-odata-client/commit/eb8af0a8c0bf63e62017e0cd439aa5356a3a81d5))
+
 # [3.1.0](https://github.com/soliantconsulting/fm-odata-client/compare/v3.0.2...v3.1.0) (2026-01-27)
 
 
