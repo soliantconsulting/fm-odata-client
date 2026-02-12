@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.0...v3.2.1) (2026-02-12)
+
+
+### Bug Fixes
+
+* **connection:** instead of accepting a dispatcher, accept a custom fetch ([c3b1506](https://github.com/soliantconsulting/fm-odata-client/commit/c3b1506680e56663bd21b94986533676bb5d0347))
+
 # [3.2.0](https://github.com/soliantconsulting/fm-odata-client/compare/v3.1.0...v3.2.0) (2026-02-11)
 
 
