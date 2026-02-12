@@ -1,3 +1,10 @@
+## [3.2.2](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.1...v3.2.2) (2026-02-12)
+
+
+### Bug Fixes
+
+* **connection:** generalize ConnectionFetch type to avoid type conflicts ([5ffe646](https://github.com/soliantconsulting/fm-odata-client/commit/5ffe646c7860ea3c800323ae5e75dbec065769f8))
+
 ## [3.2.1](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.0...v3.2.1) (2026-02-12)
 
 
