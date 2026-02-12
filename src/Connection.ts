@@ -51,10 +51,12 @@ type Batch = {
     operations: BatchOperation[];
 };
 
+export type ConnectionFetch = (input: string | URL | globalThis.Request) => Promise<Response>;
+
 export type ConnectionOptions = {
     laxParsing?: boolean;
     disableSsl?: boolean;
-    fetch?: typeof fetch;
+    fetch?: ConnectionFetch;
 };
 
 class Connection {
