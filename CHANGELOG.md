@@ -1,3 +1,10 @@
+## [3.2.4](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.3...v3.2.4) (2026-02-12)
+
+
+### Bug Fixes
+
+* **lax-parsing:** remove null characters from JSON response before parsing ([c3c3ab4](https://github.com/soliantconsulting/fm-odata-client/commit/c3c3ab4cc8c3bb9dc01f02a0282cb73e018e16b2))
+
 ## [3.2.3](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.2...v3.2.3) (2026-02-12)
 
 
