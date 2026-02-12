@@ -1,3 +1,10 @@
+## [3.2.3](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.2...v3.2.3) (2026-02-12)
+
+
+### Bug Fixes
+
+* **connection:** roll back custom fetch due to type and intance collisions ([1b8c2c2](https://github.com/soliantconsulting/fm-odata-client/commit/1b8c2c2c8a6a065c764763d17630b1629ccbfb9c))
+
 ## [3.2.2](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.1...v3.2.2) (2026-02-12)
 
 
