@@ -51,12 +51,9 @@ type Batch = {
     operations: BatchOperation[];
 };
 
-export type ConnectionFetch = (input: string | URL | globalThis.Request) => Promise<Response>;
-
 export type ConnectionOptions = {
     laxParsing?: boolean;
     disableSsl?: boolean;
-    fetch?: ConnectionFetch;
 };
 
 class Connection {
@@ -128,7 +125,7 @@ class Connection {
             ),
         );
 
-        const response = await (this.options.fetch ?? fetch)(await batchRequest.toRequest());
+        const response = await fetch(await batchRequest.toRequest());
 
         if (!response.ok) {
             throw new Error("Batch request failed");
@@ -203,7 +200,7 @@ class Connection {
             });
         } else {
             const request = await this.createRequest(path, params);
-            response = await (this.options.fetch ?? fetch)(request);
+            response = await fetch(request);
         }
 
         if (!response.ok) {
