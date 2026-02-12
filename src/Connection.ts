@@ -54,7 +54,7 @@ type Batch = {
 export type ConnectionOptions = {
     laxParsing?: boolean;
     disableSsl?: boolean;
-    dispatcher?: RequestInit["dispatcher"];
+    fetch?: typeof fetch;
 };
 
 class Connection {
@@ -126,9 +126,7 @@ class Connection {
             ),
         );
 
-        const response = await fetch(await batchRequest.toRequest(), {
-            dispatcher: this.options.dispatcher,
-        });
+        const response = await (this.options.fetch ?? fetch)(await batchRequest.toRequest());
 
         if (!response.ok) {
             throw new Error("Batch request failed");
@@ -203,9 +201,7 @@ class Connection {
             });
         } else {
             const request = await this.createRequest(path, params);
-            response = await fetch(request, {
-                dispatcher: this.options.dispatcher,
-            });
+            response = await (this.options.fetch ?? fetch)(request);
         }
 
         if (!response.ok) {
