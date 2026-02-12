@@ -262,7 +262,7 @@ class Connection {
         }
 
         const json = await response.text();
-        const cleanedJson = json.replace(/"(?:(?=(\\?))\1.)*?"/gs, (substring) => {
+        const cleanedJson = json.replaceAll("\x00", "").replace(/"(?:(?=(\\?))\1.)*?"/gs, (substring) => {
             return substring.replace(/(?<!\\)((?:\\\\)*)\n/g, "$1\\n");
         });
 

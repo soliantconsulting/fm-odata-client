@@ -469,5 +469,15 @@ describe("Connection", () => {
             const response = laxConnection.fetchJson("");
             await expect(response).to.eventually.be.rejectedWith("bar\nbaz");
         });
+
+        it("should succeed with null byte in error response", async () => {
+            fetchMock.get("https://localhost/fmi/odata/v4", {
+                status: 400,
+                body: '{"error": {"code": "101", "message": "barbaz\0"}}',
+            });
+
+            const response = laxConnection.fetchJson("");
+            await expect(response).to.eventually.be.rejectedWith("barbaz");
+        });
     });
 });
