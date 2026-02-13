@@ -1,3 +1,10 @@
+## [3.2.5](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.4...v3.2.5) (2026-02-13)
+
+
+### Bug Fixes
+
+* **connection:** strip all illegal control characters from JSON ([70808a5](https://github.com/soliantconsulting/fm-odata-client/commit/70808a57f3b1f3670824f02a3e51fda2c9aa9c97))
+
 ## [3.2.4](https://github.com/soliantconsulting/fm-odata-client/compare/v3.2.3...v3.2.4) (2026-02-12)
 
 
