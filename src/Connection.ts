@@ -263,7 +263,8 @@ class Connection {
 
         const json = await response.text();
         const cleanedJson = json
-            .replaceAll("\x00", "")
+            // biome-ignore lint/suspicious/noControlCharactersInRegex: we must strip control characters
+            .replace(/[\u0000-\u0009\u000b-\u001f]/g, "")
             .replace(/"(?:(?=(\\?))\1.)*?"/gs, (substring) => {
                 return substring.replace(/(?<!\\)((?:\\\\)*)\n/g, "$1\\n");
             });
